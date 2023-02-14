@@ -1,11 +1,11 @@
 import IoRedis from "ioredis";
 
 class Redis {
-	static #ioRedis: IoRedis.default;
+	static #ioRedis: IoRedis;
 
-	static ioRedis(): IoRedis.default {
+	static ioRedis(): IoRedis {
 		if (!Redis.#ioRedis) {
-			Redis.#ioRedis = new IoRedis.default();
+			Redis.#ioRedis = new IoRedis();
 		}
 		return Redis.#ioRedis;
 	}

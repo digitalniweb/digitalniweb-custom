@@ -9,7 +9,7 @@ import { customBELogger } from "./logger.js";
 class ServerCache {
 	static #_instance: ServerCache;
 
-	#cache: IoRedis.default;
+	#cache: IoRedis;
 
 	// number of errors occurred
 	#errors: { [key: string]: number } = {};
@@ -20,7 +20,7 @@ class ServerCache {
 
 	constructor() {
 		// https://www.javatpoint.com/redis-all-commands (redis commands(not IoRedis'))
-		this.#cache = new IoRedis.default();
+		this.#cache = new IoRedis();
 		this.#cache.on("error", (e) => {
 			if (!(e.code in this.#errors)) {
 				this.#errors[e.code] = 0;
@@ -52,8 +52,7 @@ class ServerCache {
 		});
 
 		this.#cache.on("connect", () => {
-			if ("ECONNREFUSED" in this.#errors)
-				delete this.#errors["ECONNREFUSED"];
+			if ("ECONNREFUSED" in this.#errors) delete this.#errors["ECONNREFUSED"];
 			customBELogger({
 				message: `Redis connected to '${process.env.MICROSERVICE_NAME}'`,
 			});

@@ -4,10 +4,10 @@ import EventEmitter from "events";
 class Publisher {
 	static #_instance: Publisher;
 
-	#publisher: IoRedis.default;
+	#publisher: IoRedis;
 
 	constructor() {
-		this.#publisher = new IoRedis.default();
+		this.#publisher = new IoRedis();
 	}
 
 	static getInstance(): Publisher {

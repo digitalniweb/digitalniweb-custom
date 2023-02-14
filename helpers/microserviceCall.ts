@@ -62,12 +62,10 @@ export default async function microserviceCall(
 					? (req.headers["x-forwarded-for"] as string)
 					: "ms",
 			"user-agent":
-				req && req.headers["user-agent"]
-					? req.headers["user-agent"]
-					: "ms",
+				req && req.headers["user-agent"] ? req.headers["user-agent"] : "ms",
 		};
 
-	let axiosResponse = await axios.default({
+	let axiosResponse = await axios({
 		url: finalPath,
 		method,
 		data,

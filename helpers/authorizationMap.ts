@@ -6,6 +6,9 @@ import {
 	authorizationListType,
 	authorizationMap,
 } from "../../digitalniweb-types/authorization/index.js";
+import { globalData } from "../../digitalniweb-types/models/globalData.js";
+import RoleType = globalData.Role;
+import PrivilegeType = globalData.Privilege;
 
 async function getAuthorizationMap(req: Request) {
 	// appCache.del("map", "authorizationMap");
@@ -17,23 +20,27 @@ async function getAuthorizationMap(req: Request) {
 			path: "/api/rolesprivileges/list?select=all&type=all",
 			method: "GET",
 		});
-		for (const property in authorizationList) {
-			let currentAuthorizationType =
-				authorizationList[property as keyof authorizationListType];
-			currentAuthorizationType?.forEach((object) => {
-				if (!authorizationMap[property][object.type])
-					authorizationMap[property][object.type] = {};
-				authorizationMap[property][object.type][object.name] =
-					object.id;
-			});
+		if (authorizationList) {
+			let property: keyof authorizationListType;
+			for (property in authorizationList) {
+				let currentAuthorizationType = authorizationList[property];
+				if (currentAuthorizationType)
+					currentAuthorizationType.forEach(
+						(object: globalData.Role | globalData.Privilege) => {
+							if (
+								!authorizationMap[property] ||
+								!authorizationMap[property]![object.type]
+							)
+								// @ts-ignore: This works but in Nuxt it complains
+								authorizationMap[property][object.type] = {};
+							// @ts-ignore: This works but in Nuxt it complains
+							authorizationMap[property][object.type][object.name] = object.id;
+						}
+					);
+			}
 		}
-
 		if (authorizationMap)
-			appCache.set(
-				"map",
-				JSON.stringify(authorizationMap),
-				"authorizationMap"
-			);
+			appCache.set("map", JSON.stringify(authorizationMap), "authorizationMap");
 	} else {
 		let authorizationMapString = appCache.get("map", "authorizationMap");
 		if (authorizationMapString)

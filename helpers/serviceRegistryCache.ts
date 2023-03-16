@@ -304,7 +304,7 @@ function requestServiceRegistryInfoFromRedisEvent(
 	event: string
 ): Promise<microserviceRegistryInfo> {
 	return new Promise(async (resolve, reject) => {
-		if (!process.env.MICROSERVICE_UNIQUE_NAME || !process.env.APP_UNIQUE_NAME)
+		if (!process.env.MICROSERVICE_UNIQUE_NAME && !process.env.APP_UNIQUE_NAME)
 			reject("MICROSERVICE_UNIQUE_NAME or APP_UNIQUE_NAME missing");
 		const uniqueName = process.env.MICROSERVICE_UNIQUE_NAME
 			? process.env.MICROSERVICE_UNIQUE_NAME

@@ -1,0 +1,107 @@
+import axios, { AxiosResponse } from "axios";
+
+import { Request } from "express";
+import { HTTPMethods } from "../../digitalniweb-types/httpMethods.js";
+import { microservicesArray } from "../variables/microservices.js";
+import { microservices } from "../../digitalniweb-types/index.js";
+import appCache from "./appCache.js";
+import {
+	getApp,
+	getMicroservice,
+	requestServiceRegistryInfo,
+	microserviceExists,
+} from "./serviceRegistryCache.js";
+import { type } from "os";
+import { globalData } from "~~/digitalniweb-types/models/globalData.js";
+import { websites } from "~~/digitalniweb-types/models/websites.js";
+
+type msCallOptions = {
+	name: microservices;
+	req?: Request;
+	protocol?: string;
+	id?: number;
+	path: string;
+	method?: HTTPMethods;
+	data?: { [key: string]: any };
+	params?: { [key: string]: any };
+};
+
+type appCallOptions = Omit<msCallOptions, "id">;
+
+export async function microserviceCall(
+	options: msCallOptions
+): Promise<AxiosResponse<any, any>["data"] | false> {
+	// Primarily used for microservice calls
+	const { name, id }: msCallOptions = options;
+	let serviceName: microservices | undefined;
+	if (!microserviceExists(name)) return false;
+
+	if (name === process.env.MICROSERVICE_NAME) {
+		console.log(
+			"You don't need to call 'microserviceCall' for same microservice."
+		);
+		return false;
+	}
+
+	let service = await getMicroservice({
+		name,
+		id,
+	});
+
+	if (service === undefined) return false;
+	return makeCall(service, options);
+}
+
+export async function appCall(
+	options: appCallOptions
+): Promise<AxiosResponse<any, any>["data"] | false> {
+	// Primarily used for microservice calls
+	const { name }: msCallOptions = options;
+
+	let service = await getApp(name);
+
+	if (service === undefined) return false;
+	return makeCall(service, options);
+}
+
+async function makeCall(
+	service: globalData.ServiceRegistry | websites.App,
+	options: msCallOptions | appCallOptions
+) {
+	const {
+		req,
+		protocol = "http",
+		path,
+		method = "GET",
+		data = {}, // POST data
+		params = {}, // GET parameters (query)
+	}: msCallOptions = options;
+	let finalPath =
+		`${protocol}://${service.host}:${service.port}` +
+		(path[0] !== "/" ? "/" : "") +
+		path;
+
+	let headers = {};
+	if (req)
+		headers = {
+			"x-forwarded-for":
+				req && req.headers["x-forwarded-for"]
+					? (req.headers["x-forwarded-for"] as string)
+					: "service",
+			"user-agent":
+				req && req.headers["user-agent"]
+					? req.headers["user-agent"]
+					: "service",
+		};
+
+	let axiosResponse = await axios({
+		url: finalPath,
+		method,
+		data,
+		params,
+		headers,
+	});
+
+	// axiosResponse throws error on axios error
+	return axiosResponse.data;
+}

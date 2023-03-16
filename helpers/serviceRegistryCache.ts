@@ -2,6 +2,7 @@ import {
 	microserviceRegistryInfo,
 	serviceOptions,
 	serviceRegistry,
+	serviceRegistryApp,
 } from "../../digitalniweb-types/customFunctions/globalData.js";
 import { microservicesArray } from "../../digitalniweb-custom/variables/microservices.js";
 import {
@@ -11,43 +12,148 @@ import {
 } from "../../digitalniweb-types/index.js";
 import { globalData } from "../../digitalniweb-types/models/globalData.js";
 import appCache from "./appCache.js";
-import microserviceCall from "./microserviceCall.js";
-import { customBELogger } from "./logger.js";
+import { microserviceCall } from "./remoteProcedureCall.js";
 
 import Publisher from "./../../digitalniweb-custom/helpers/publisherService.js";
 import Subscriber from "./../../digitalniweb-custom/helpers/subscriberService.js";
 import sleep from "../functions/sleep.js";
+import { websites } from "~~/digitalniweb-types/models/websites.js";
 
 type getServiceOptions = {
 	name: microservices;
 	id?: number;
 };
 
-export async function setService(
-	name: microservices,
-	info: microserviceRegistryInfo
-) {}
+type setServiceOptions = {
+	name: microservices;
+	info: globalData.ServiceRegistry;
+};
+type setAppOptions = {
+	name: string;
+	info: websites.App;
+};
+
+export function setMainIdService(options: {
+	name: microservices;
+	id: number;
+}): boolean {
+	let { name, id } = options;
+	let serviceRegistryApp = appCache.get("serviceRegistry") as
+		| serviceRegistry
+		| undefined;
+	if (serviceRegistryApp?.[name] === undefined) return false;
+
+	if (findCachedMicroserviceById(name, id) === undefined) return false;
+
+	(serviceRegistryApp[name] as microserviceRegistryInfo).mainId = id;
+	return true;
+}
 
 /**
- * returns main service or service by id from cache
+ * sets "serviceRegistryApp" for apps
  * @param options
- * @options `name`: service name
- * @options `id?`: service ID
+ */
+export function setApp(options: setAppOptions) {
+	const { name, info } = options;
+	if (!info || !name) return false;
+	let serviceRegistryApp = appCache.get("serviceRegistryApp") as
+		| serviceRegistryApp
+		| undefined;
+	if (!serviceRegistryApp) {
+		serviceRegistryApp = {};
+	}
+	serviceRegistryApp[name] = info as websites.App;
+}
+
+/**
+ * sets "serviceRegistry" cache for microservices
+ * @param options
  * @returns
  */
-export async function getService(
+export function setMicroservice(options: setServiceOptions) {
+	const { name, info } = options;
+	if (!info || !name) return false;
+	let serviceRegistry = appCache.get("serviceRegistry") as
+		| serviceRegistry
+		| undefined;
+	if (!serviceRegistry) {
+		serviceRegistry = {} as serviceRegistry;
+		serviceRegistry[name] = {
+			mainId: info.id,
+			services: [info as globalData.ServiceRegistry],
+		};
+	} else {
+		let app = findCachedMicroserviceById(name, info.id);
+		if (app) {
+			serviceRegistry[name]?.services.push(
+				info as globalData.ServiceRegistry
+			);
+		} else {
+			serviceRegistry[name] = {
+				mainId: info.id,
+				services: [info as globalData.ServiceRegistry],
+			};
+		}
+		serviceRegistry[name]?.services;
+	}
+	return true;
+}
+
+/**
+ * returns app from "serviceRegistryApp" cache
+ * @param options
+ * @returns
+ */
+export async function getApp(name: string): Promise<websites.App | undefined> {
+	if (!name) return undefined;
+
+	let serviceRegistryAppCache: serviceRegistryApp | undefined =
+		appCache.get("serviceRegistryApp");
+	if (serviceRegistryAppCache === undefined) {
+		let serviceRegistryCache: serviceRegistry | undefined =
+			appCache.get("serviceRegistry");
+		if (serviceRegistryCache === undefined) {
+			if ((await requestServiceRegistryInfo()) === false)
+				return undefined;
+		}
+		let app = (await microserviceCall({
+			name: "globalData",
+			path: `/api/serviceregistry/app?name=${name}`,
+		})) as websites.App | undefined;
+		if (!app) return undefined;
+		setApp({ name, info: app });
+		return app;
+	}
+
+	let app = serviceRegistryAppCache[name] as websites.App | undefined;
+	if (app === undefined) {
+		app = (await microserviceCall({
+			name: "globalData",
+			path: `/api/serviceregistry/app?name=${name}`,
+		})) as websites.App | undefined;
+		if (!app) return undefined;
+		setApp({ name, info: app });
+	}
+	return app;
+}
+
+/**
+ * returns main microservice or microservice by id from "serviceRegistry" cache
+ * @param options
+ * @options `name`: microservice name
+ * @options `id?`: microservice ID
+ * @returns
+ */
+export async function getMicroservice(
 	options: getServiceOptions
 ): Promise<globalData.ServiceRegistry | undefined> {
 	const { name, id } = options;
-	if (!serviceExists(name)) return undefined;
+	if (!microserviceExists(name)) return undefined;
+
 	let serviceRegistryCache: serviceRegistry | undefined =
 		appCache.get("serviceRegistry");
 	if (serviceRegistryCache === undefined) {
-		try {
-			await requestServiceRegistryInfo();
-		} catch (error) {
-			return undefined;
-		}
+		if ((await requestServiceRegistryInfo()) === false) return undefined;
 		serviceRegistryCache = appCache.get("serviceRegistry");
 	}
 
@@ -55,29 +161,52 @@ export async function getService(
 
 	let service = {} as globalData.ServiceRegistry | undefined;
 
-	if (serviceRegistryCache[name] === undefined) {
-		// try to get information about microservice from service registry
-		// !!! need to add serviceregistry to 'globalData' ms
-		service = (await microserviceCall({
-			microservice: "globalData",
-			path: `/api/serviceregistry?service=${name}`,
-		})) as globalData.ServiceRegistry | undefined;
-		if (!service) return undefined;
-		serviceRegistryCache[name] =
-			serviceRegistryCache as microserviceRegistryInfo;
-	} else if (id) {
+	if (id) {
 		service = serviceRegistryCache[name]?.services.find((e) => e.id == id);
 	} else {
-		service = serviceRegistryCache[name]?.services.find((e) => {
-			if (serviceRegistryCache === undefined) return undefined;
-			return e.id == serviceRegistryCache[name]?.mainId;
-		});
+		let serviceId = (serviceRegistryCache as serviceRegistry)[name]?.mainId;
+		if (serviceId !== undefined)
+			service = findCachedMicroserviceById(name, serviceId);
 	}
-
+	if (!service) {
+		let path = `/api/serviceregistry/getbyname?name=${name}`;
+		if (id) path = `/api/serviceregistry/getbyid?id=${id}`;
+		if (service === undefined) {
+			service = (await microserviceCall({
+				name: "globalData",
+				path,
+			})) as globalData.ServiceRegistry | undefined;
+			if (service === undefined) return undefined;
+			setMicroservice({ name, info: service });
+		}
+	}
 	return service;
 }
 
-export function serviceExists(service: microservices): boolean {
+export function findCachedMicroserviceById(
+	name: microservices,
+	id: number
+): globalData.ServiceRegistry | undefined {
+	let serviceRegistryCache: serviceRegistry | undefined =
+		appCache.get("serviceRegistry");
+	if (!serviceRegistryCache?.[name]) return undefined;
+	return serviceRegistryCache[name]?.services.find((e) => {
+		return e.id == id;
+	});
+}
+export function findCachedMicroserviceIndexById(
+	name: microservices,
+	id: number
+): number | undefined {
+	let serviceRegistryCache: serviceRegistry | undefined =
+		appCache.get("serviceRegistry");
+	if (!serviceRegistryCache?.[name]) return undefined;
+	return serviceRegistryCache[name]?.services.findIndex((e) => {
+		return e.id == id;
+	});
+}
+
+export function microserviceExists(service: microservices): boolean {
 	return microservicesArray.includes(service);
 }
 
@@ -106,7 +235,7 @@ export async function registerCurrentService() {
 			} else if (e === "MICROSERVICE_NAME") {
 				serviceInfo[e] = process.env[e];
 			} else {
-				// else value type === 'string'
+				// e === 'string'
 				serviceInfo[e] = process.env[e];
 			}
 		}
@@ -138,7 +267,7 @@ export async function registerCurrentService() {
 	};
 
 	await microserviceCall({
-		microservice: "globalData",
+		name: "globalData",
 		path: "/api/serviceregistry/register",
 		data: service,
 		method: "POST",
@@ -149,22 +278,30 @@ export async function registerCurrentService() {
  * gets serviceRegistry information <microserviceRegistryInfo>
  * @returns void
  */
-export async function requestServiceRegistryInfo(): Promise<boolean> {
+export async function requestServiceRegistryInfo(
+	forceRequest = false
+): Promise<boolean> {
 	try {
+		let serviceRegistryCache: serviceRegistry | undefined =
+			appCache.get("serviceRegistry");
+		if (
+			!forceRequest &&
+			serviceRegistryCache !== undefined &&
+			serviceRegistryCache.globalData !== undefined
+		)
+			return true;
+		if (serviceRegistryCache === undefined) serviceRegistryCache = {};
 		let response = await requestServiceRegistryInfoFromRedisEvent(
 			Subscriber,
 			"pmessage"
 		);
-		let serviceRegistryCache: serviceRegistry | undefined =
-			appCache.get("serviceRegistry");
-		if (serviceRegistryCache === undefined) serviceRegistryCache = {};
 		serviceRegistryCache.globalData = response;
 		appCache.set("serviceRegistry", serviceRegistryCache);
+		return true;
 	} catch (error) {
 		console.log(error);
 		return false;
 	}
-	return true;
 }
 
 function requestServiceRegistryInfoFromRedisEvent(
@@ -172,6 +309,14 @@ function requestServiceRegistryInfoFromRedisEvent(
 	event: string
 ): Promise<microserviceRegistryInfo> {
 	return new Promise(async (resolve, reject) => {
+		if (
+			!process.env.MICROSERVICE_UNIQUE_NAME ||
+			!process.env.APP_UNIQUE_NAME
+		)
+			reject("MICROSERVICE_UNIQUE_NAME or APP_UNIQUE_NAME missing");
+		const uniqueName = process.env.MICROSERVICE_UNIQUE_NAME
+			? process.env.MICROSERVICE_UNIQUE_NAME
+			: process.env.APP_UNIQUE_NAME;
 		const listener = (
 			pattern: string,
 			channel: string,
@@ -197,6 +342,6 @@ function requestServiceRegistryInfoFromRedisEvent(
 		);
 		await sleep(3000);
 		item.off(event, listener);
-		reject("reject");
+		reject("Timed out");
 	});
 }

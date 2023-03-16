@@ -1,5 +1,5 @@
 import appCache from "./appCache.js";
-import microserviceCall from "./microserviceCall.js";
+import { microserviceCall } from "./remoteProcedureCall.js";
 
 import { Request } from "express";
 import {
@@ -16,7 +16,7 @@ async function getAuthorizationMap(req: Request) {
 	if (!appCache.has("map", "authorizationMap")) {
 		let authorizationList: authorizationListType = await microserviceCall({
 			req,
-			microservice: "globalData",
+			name: "globalData",
 			path: "/api/rolesprivileges/list?select=all&type=all",
 			method: "GET",
 		});
@@ -34,13 +34,19 @@ async function getAuthorizationMap(req: Request) {
 								// @ts-ignore: This works but in Nuxt it complains
 								authorizationMap[property][object.type] = {};
 							// @ts-ignore: This works but in Nuxt it complains
-							authorizationMap[property][object.type][object.name] = object.id;
+							authorizationMap[property][object.type][
+								object.name
+							] = object.id;
 						}
 					);
 			}
 		}
 		if (authorizationMap)
-			appCache.set("map", JSON.stringify(authorizationMap), "authorizationMap");
+			appCache.set(
+				"map",
+				JSON.stringify(authorizationMap),
+				"authorizationMap"
+			);
 	} else {
 		let authorizationMapString = appCache.get("map", "authorizationMap");
 		if (authorizationMapString)

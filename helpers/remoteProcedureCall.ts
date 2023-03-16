@@ -12,8 +12,8 @@ import {
 	microserviceExists,
 } from "./serviceRegistryCache.js";
 import { type } from "os";
-import { globalData } from "~~/digitalniweb-types/models/globalData.js";
-import { websites } from "~~/digitalniweb-types/models/websites.js";
+import { globalData } from "../../digitalniweb-types/models/globalData.js";
+import { websites } from "../../digitalniweb-types/models/websites.js";
 
 type msCallOptions = {
 	name: microservices;

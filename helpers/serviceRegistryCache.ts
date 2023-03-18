@@ -17,7 +17,6 @@ import { microserviceCall } from "./remoteProcedureCall.js";
 import Publisher from "./../../digitalniweb-custom/helpers/publisherService.js";
 import Subscriber from "./../../digitalniweb-custom/helpers/subscriberService.js";
 import sleep from "../functions/sleep.js";
-import { websites } from "../../digitalniweb-types/models/websites.js";
 
 type getServiceOptions = {
 	name: microservices;
@@ -30,7 +29,7 @@ type setServiceOptions = {
 };
 type setAppOptions = {
 	name: string;
-	info: websites.App;
+	info: globalData.App;
 };
 
 export function setMainIdService(options: {
@@ -62,7 +61,7 @@ export function setApp(options: setAppOptions) {
 	if (!serviceRegistryApp) {
 		serviceRegistryApp = {};
 	}
-	serviceRegistryApp[name] = info as websites.App;
+	serviceRegistryApp[name] = info as globalData.App;
 }
 
 /**
@@ -102,7 +101,9 @@ export function setMicroservice(options: setServiceOptions) {
  * @param options
  * @returns
  */
-export async function getApp(name: string): Promise<websites.App | undefined> {
+export async function getApp(
+	name: string
+): Promise<globalData.App | undefined> {
 	if (!name) return undefined;
 
 	let serviceRegistryAppCache: serviceRegistryApp | undefined =
@@ -116,18 +117,18 @@ export async function getApp(name: string): Promise<websites.App | undefined> {
 		let app = (await microserviceCall({
 			name: "globalData",
 			path: `/api/serviceregistry/app?name=${name}`,
-		})) as websites.App | undefined;
+		})) as globalData.App | undefined;
 		if (!app) return undefined;
 		setApp({ name, info: app });
 		return app;
 	}
 
-	let app = serviceRegistryAppCache[name] as websites.App | undefined;
+	let app = serviceRegistryAppCache[name] as globalData.App | undefined;
 	if (app === undefined) {
 		app = (await microserviceCall({
 			name: "globalData",
 			path: `/api/serviceregistry/app?name=${name}`,
-		})) as websites.App | undefined;
+		})) as globalData.App | undefined;
 		if (!app) return undefined;
 		setApp({ name, info: app });
 	}

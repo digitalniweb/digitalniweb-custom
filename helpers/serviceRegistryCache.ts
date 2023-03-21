@@ -1,14 +1,18 @@
 import {
 	microserviceRegistryInfo,
-	serviceOptions,
+	microserviceOptions,
 	serviceRegistry,
 	serviceRegistryApp,
+	appOptions,
 } from "../../digitalniweb-types/customFunctions/globalData.js";
 import { microservicesArray } from "../../digitalniweb-custom/variables/microservices.js";
 import {
 	microservices,
-	serviceInfoParametersType,
-	serviceInfoType,
+	microserviceInfoParametersType,
+	microserviceInfoType,
+	appInfoParametersType,
+	appInfoType,
+	languages,
 } from "../../digitalniweb-types/index.js";
 import { globalData } from "../../digitalniweb-types/models/globalData.js";
 import appCache from "./appCache.js";
@@ -208,12 +212,78 @@ export function microserviceExists(service: microservices): boolean {
 	return microservicesArray.includes(service);
 }
 
-export async function registerCurrentService() {
-	let missingServiceInfo: serviceInfoParametersType[] = [];
+export async function registerCurrentApp() {
+	let missingServiceInfo: appInfoParametersType[] = [];
 
-	let serviceInfo = {} as serviceInfoType;
+	let serviceInfo = {} as appInfoType;
 
-	let serviceInfoParameters: Array<serviceInfoParametersType> = [
+	let serviceInfoParameters: Array<appInfoParametersType> = [
+		"PORT",
+		"HOST",
+		"APP_UNIQUE_NAME",
+		"APP_NAME",
+		"APP_API_KEY",
+		"DEFAULT_LANGUAGE",
+		"APP_TYPE",
+	];
+
+	serviceInfoParameters.forEach((e) => {
+		if (process.env[e] == undefined) missingServiceInfo.push(e);
+		else {
+			if (e === "PORT") {
+				if (Number.isInteger(Number(serviceInfo[e])))
+					throw new Error("Current's app PORT is not a number!");
+				serviceInfo[e] = process.env[e];
+			} else if (e === "DEFAULT_LANGUAGE") {
+				serviceInfo[e] = process.env[e];
+			} else {
+				// e === 'string'
+				serviceInfo[e] = process.env[e];
+			}
+		}
+	});
+
+	if (missingServiceInfo.length !== 0) {
+		/* customBELogger({
+			message: `Couldn't register service ${
+				process.env.APP_NAME
+			}. ${missingServiceInfo.join(", ")} ${
+				missingServiceInfo.length === 1 ? "is" : "are"
+			} missing in .env file.`,
+		}); */
+		throw new Error(
+			`Couldn't register service ${
+				process.env.APP_NAME
+			}. ${missingServiceInfo.join(", ")} ${
+				missingServiceInfo.length === 1 ? "is" : "are"
+			} missing in .env file.`
+		);
+	}
+
+	let service: appOptions = {
+		port: serviceInfo["PORT"],
+		host: serviceInfo["HOST"],
+		uniqueName: serviceInfo["APP_NAME"],
+		name: serviceInfo["APP_NAME"],
+		apiKey: serviceInfo["APP_API_KEY"],
+		appType: serviceInfo["APP_TYPE"],
+		language: serviceInfo["DEFAULT_LANGUAGE"],
+	};
+
+	await microserviceCall({
+		name: "globalData",
+		path: "/api/serviceregistry/app/register",
+		data: service,
+		method: "POST",
+	});
+}
+
+export async function registerCurrentMicroservice() {
+	let missingServiceInfo: microserviceInfoParametersType[] = [];
+
+	let serviceInfo = {} as microserviceInfoType;
+
+	let serviceInfoParameters: Array<microserviceInfoParametersType> = [
 		"PORT",
 		"HOST",
 		"MICROSERVICE_UNIQUE_NAME",
@@ -254,7 +324,7 @@ export async function registerCurrentService() {
 		);
 	}
 
-	let service: serviceOptions = {
+	let service: microserviceOptions = {
 		port: serviceInfo["PORT"],
 		host: serviceInfo["HOST"],
 		uniqueName: serviceInfo["MICROSERVICE_UNIQUE_NAME"],
@@ -316,7 +386,7 @@ function requestServiceRegistryInfoFromRedisEvent(
 					/^serviceRegistry-responseInformation-/,
 					""
 				);
-				if (requestedService != process.env.MICROSERVICE_UNIQUE_NAME) return;
+				if (requestedService != uniqueName) return;
 				item.off(event, listener);
 				resolve(JSON.parse(message));
 			}

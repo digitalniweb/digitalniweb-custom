@@ -266,7 +266,7 @@ export async function registerCurrentApp() {
 	let service: appOptions = {
 		port: serviceInfo["PORT"],
 		host: serviceInfo["HOST"],
-		uniqueName: serviceInfo["APP_NAME"],
+		uniqueName: serviceInfo["APP_UNIQUE_NAME"],
 		name: serviceInfo["APP_NAME"],
 		apiKey: serviceInfo["APP_API_KEY"],
 		appType: serviceInfo["APP_TYPE"],

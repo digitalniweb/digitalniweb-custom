@@ -88,7 +88,9 @@ export function setMicroservice(options: setServiceOptions) {
 	} else {
 		let app = findCachedMicroserviceById(name, info.id);
 		if (app) {
-			serviceRegistry[name]?.services.push(info as globalData.ServiceRegistry);
+			serviceRegistry[name]?.services.push(
+				info as globalData.ServiceRegistry
+			);
 		} else {
 			serviceRegistry[name] = {
 				mainId: info.id,
@@ -116,7 +118,8 @@ export async function getApp(
 		let serviceRegistryCache: serviceRegistry | undefined =
 			appCache.get("serviceRegistry");
 		if (serviceRegistryCache === undefined) {
-			if ((await requestServiceRegistryInfo()) === false) return undefined;
+			if ((await requestServiceRegistryInfo()) === false)
+				return undefined;
 		}
 		let app = (await microserviceCall({
 			name: "globalData",
@@ -296,7 +299,9 @@ export async function registerCurrentMicroservice() {
 		else {
 			if (e === "PORT") {
 				if (Number.isInteger(Number(serviceInfo[e])))
-					throw new Error("Current's microservice PORT is not a number!");
+					throw new Error(
+						"Current's microservice PORT is not a number!"
+					);
 				serviceInfo[e] = process.env[e];
 			} else if (e === "MICROSERVICE_NAME") {
 				serviceInfo[e] = process.env[e];
@@ -375,12 +380,19 @@ function requestServiceRegistryInfoFromRedisEvent(
 	event: string
 ): Promise<microserviceRegistryInfo> {
 	return new Promise(async (resolve, reject) => {
-		if (!process.env.MICROSERVICE_UNIQUE_NAME && !process.env.APP_UNIQUE_NAME)
+		if (
+			!process.env.MICROSERVICE_UNIQUE_NAME &&
+			!process.env.APP_UNIQUE_NAME
+		)
 			reject("MICROSERVICE_UNIQUE_NAME or APP_UNIQUE_NAME missing");
 		const uniqueName = process.env.MICROSERVICE_UNIQUE_NAME
 			? process.env.MICROSERVICE_UNIQUE_NAME
 			: process.env.APP_UNIQUE_NAME;
-		const listener = (pattern: string, channel: string, message: string) => {
+		const listener = (
+			pattern: string,
+			channel: string,
+			message: string
+		) => {
 			if (pattern === "serviceRegistry-responseInformation-*") {
 				let requestedService = channel.replace(
 					/^serviceRegistry-responseInformation-/,
@@ -396,7 +408,7 @@ function requestServiceRegistryInfoFromRedisEvent(
 
 		await Publisher.publish(
 			"serviceRegistry-requestInformation",
-			process.env.MICROSERVICE_UNIQUE_NAME
+			uniqueName
 		);
 		await sleep(3000);
 		item.off(event, listener);

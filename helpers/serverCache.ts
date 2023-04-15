@@ -22,7 +22,15 @@ class ServerCache {
 		// https://www.javatpoint.com/redis-all-commands (redis commands(not IoRedis'))
 		this.#cache = new IoRedis();
 		this.#cache.on("error", (e) => {
-			if (!(e.code in this.#errors)) {
+			console.log("error serverCache.ts");
+			console.log(e);
+			/* console.log(e.cause);
+			console.log(e.message);
+			console.log(e.name);
+			console.log(e.stack); */
+
+			// this is different not working anymore
+			/* if (!(e.code in this.#errors)) {
 				this.#errors[e.code] = 0;
 			}
 			this.#errors[e.code]++;
@@ -48,11 +56,12 @@ class ServerCache {
 						});
 					}
 				}
-			}
+			} */
 		});
 
 		this.#cache.on("connect", () => {
-			if ("ECONNREFUSED" in this.#errors) delete this.#errors["ECONNREFUSED"];
+			if ("ECONNREFUSED" in this.#errors)
+				delete this.#errors["ECONNREFUSED"];
 			customBELogger({
 				message: `Redis connected to '${process.env.MICROSERVICE_NAME}'`,
 			});

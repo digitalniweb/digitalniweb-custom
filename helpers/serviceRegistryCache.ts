@@ -12,7 +12,6 @@ import {
 	microserviceInfoType,
 	appInfoParametersType,
 	appInfoType,
-	languages,
 } from "../../digitalniweb-types/index.js";
 import { globalData } from "../../digitalniweb-types/models/globalData.js";
 import appCache from "./appCache.js";

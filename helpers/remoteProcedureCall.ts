@@ -12,6 +12,7 @@ import {
 	microserviceExists,
 } from "./serviceRegistryCache.js";
 import { globalData } from "../../digitalniweb-types/models/globalData.js";
+import isObjectEmpty from "../functions/isObjectEmpty.js";
 
 type msCallOptions = {
 	name: microservices;
@@ -80,6 +81,13 @@ async function makeCall(
 		path;
 
 	let headers = {};
+	if (!isObjectEmpty(data) && method === "GET") {
+		const url = new URL(finalPath);
+		Object.keys(data).forEach((key) =>
+			url.searchParams.append(key, data[key])
+		);
+		finalPath = url.toString();
+	}
 	if (req)
 		headers = {
 			"x-forwarded-for":

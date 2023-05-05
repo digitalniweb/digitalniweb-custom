@@ -20,6 +20,10 @@ import { microserviceCall } from "./remoteProcedureCall.js";
 import Publisher from "./../../digitalniweb-custom/helpers/publisherService.js";
 import Subscriber from "./../../digitalniweb-custom/helpers/subscriberService.js";
 import sleep from "../functions/sleep.js";
+import {
+	getServiceRegistryInfo,
+	getServiceRegistryServices,
+} from "../../custom/helpers/globalData/serviceRegistry.js";
 
 type getServiceOptions = {
 	name: microservices;
@@ -82,6 +86,7 @@ export function setMicroservice(options: setServiceOptions) {
 		serviceRegistry = {} as serviceRegistry;
 		serviceRegistry[name] = {
 			mainId: info.id,
+			name,
 			services: [info as globalData.ServiceRegistry],
 		};
 	} else {
@@ -93,6 +98,7 @@ export function setMicroservice(options: setServiceOptions) {
 		} else {
 			serviceRegistry[name] = {
 				mainId: info.id,
+				name,
 				services: [info as globalData.ServiceRegistry],
 			};
 		}
@@ -157,13 +163,22 @@ export async function getMicroservice(
 	let serviceRegistryCache: serviceRegistry | undefined =
 		appCache.get("serviceRegistry");
 	if (serviceRegistryCache === undefined) {
-		if ((await requestServiceRegistryInfo()) === false) return undefined;
+		if (process.env.MICROSERVICE_NAME === "globalData") {
+			let serviceRegistryInfo = await getServiceRegistryInfo();
+			if (serviceRegistryInfo === false) return undefined;
+			appCache.set("serviceRegistry", {
+				globalData: serviceRegistryInfo,
+			});
+		} else {
+			if ((await requestServiceRegistryInfo()) === false)
+				return undefined;
+		}
 		serviceRegistryCache = appCache.get("serviceRegistry");
 	}
 
 	if (serviceRegistryCache === undefined) return undefined;
 
-	let service = {} as globalData.ServiceRegistry | undefined;
+	let service = undefined as globalData.ServiceRegistry | undefined;
 
 	if (id) {
 		service = serviceRegistryCache[name]?.services.find((e) => e.id == id);
@@ -173,13 +188,34 @@ export async function getMicroservice(
 			service = findCachedMicroserviceById(name, serviceId);
 	}
 	if (!service) {
-		let path = `/api/serviceregistry/getbyname?name=${name}`;
-		if (id) path = `/api/serviceregistry/getbyid?id=${id}`;
 		if (service === undefined) {
-			service = (await microserviceCall({
-				name: "globalData",
-				path,
-			})) as globalData.ServiceRegistry | undefined;
+			if (process.env.MICROSERVICE_NAME === "globalData") {
+				// !!! dodělat - vytvorit api a kontrolery a helpery v nich ktere pouziji zde... Nazvy jako o par radku dole to 'path'
+				let microserviceInfo;
+				if (id) {
+					microserviceInfo = await getServiceRegistryServices({
+						id,
+					});
+				} else {
+					microserviceInfo = await getServiceRegistryServices({
+						name,
+					});
+				}
+				if (!microserviceInfo) return undefined;
+				let mainMicroservice = microserviceInfo.services.find(
+					(e) => e.id == id
+				);
+				if (!mainMicroservice) return undefined;
+
+				serviceRegistryCache[microserviceInfo.name] = microserviceInfo;
+			} else {
+				let path = `/api/serviceregistry/${name}`;
+				if (id) path = `/api/serviceregistry/getbyid/${id}`;
+				service = (await microserviceCall({
+					name: "globalData",
+					path,
+				})) as globalData.ServiceRegistry | undefined;
+			}
 			if (service === undefined) return undefined;
 			setMicroservice({ name, info: service });
 		}
@@ -411,6 +447,6 @@ function requestServiceRegistryInfoFromRedisEvent(
 		);
 		await sleep(3000);
 		item.off(event, listener);
-		reject("Timed out");
+		reject("Timed out request service registry info from Redis event");
 	});
 }

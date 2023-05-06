@@ -20,11 +20,6 @@ import { microserviceCall } from "./remoteProcedureCall.js";
 import Publisher from "./../../digitalniweb-custom/helpers/publisherService.js";
 import Subscriber from "./../../digitalniweb-custom/helpers/subscriberService.js";
 import sleep from "../functions/sleep.js";
-import {
-	getServiceRegistryInfo,
-	getServiceRegistryServices,
-} from "../../digitalniweb-custom/helpers/serviceRegistry.js";
-
 type getServiceOptions = {
 	name: microservices;
 	id?: number;
@@ -164,6 +159,9 @@ export async function getMicroservice(
 		appCache.get("serviceRegistry");
 	if (serviceRegistryCache === undefined) {
 		if (process.env.MICROSERVICE_NAME === "globalData") {
+			let { getServiceRegistryInfo } = await import(
+				"./../../custom/helpers/globalData/serviceRegistry.js"
+			);
 			let serviceRegistryInfo = await getServiceRegistryInfo();
 			if (serviceRegistryInfo === false) return undefined;
 			appCache.set("serviceRegistry", {
@@ -192,6 +190,9 @@ export async function getMicroservice(
 			if (process.env.MICROSERVICE_NAME === "globalData") {
 				// !!! dodělat - vytvorit api a kontrolery a helpery v nich ktere pouziji zde... Nazvy jako o par radku dole to 'path'
 				let microserviceInfo;
+				let { getServiceRegistryServices } = await import(
+					"./../../custom/helpers/globalData/serviceRegistry.js"
+				);
 				if (id) {
 					microserviceInfo = await getServiceRegistryServices({
 						id,

@@ -4,7 +4,7 @@ import {
 	serviceRegistry,
 	serviceRegistryApp,
 	appOptions,
-} from "../../digitalniweb-types/customFunctions/globalData";
+} from "../../digitalniweb-types/customFunctions/globalData.js";
 import { microservicesArray } from "../../digitalniweb-custom/variables/microservices.js";
 import {
 	microservices,
@@ -12,14 +12,19 @@ import {
 	microserviceInfoType,
 	appInfoParametersType,
 	appInfoType,
-} from "../../digitalniweb-types/index";
-import { globalData } from "../../digitalniweb-types/models/globalData";
+} from "../../digitalniweb-types/index.js";
+import { globalData } from "../../digitalniweb-types/models/globalData.js";
 import appCache from "./appCache.js";
 import { microserviceCall } from "./remoteProcedureCall.js";
 
 import Publisher from "./../../digitalniweb-custom/helpers/publisherService.js";
 import Subscriber from "./../../digitalniweb-custom/helpers/subscriberService.js";
 import sleep from "../functions/sleep.js";
+import {
+	getServiceRegistryInfo,
+	getServiceRegistryServices,
+} from "../../custom/helpers/globalData/serviceRegistry.js";
+
 type getServiceOptions = {
 	name: microservices;
 	id?: number;
@@ -159,9 +164,6 @@ export async function getMicroservice(
 		appCache.get("serviceRegistry");
 	if (serviceRegistryCache === undefined) {
 		if (process.env.MICROSERVICE_NAME === "globalData") {
-			let { getServiceRegistryInfo } = await import(
-				"./../../custom/helpers/globalData/serviceRegistry.js"
-			);
 			let serviceRegistryInfo = await getServiceRegistryInfo();
 			if (serviceRegistryInfo === false) return undefined;
 			appCache.set("serviceRegistry", {
@@ -190,9 +192,6 @@ export async function getMicroservice(
 			if (process.env.MICROSERVICE_NAME === "globalData") {
 				// !!! dodělat - vytvorit api a kontrolery a helpery v nich ktere pouziji zde... Nazvy jako o par radku dole to 'path'
 				let microserviceInfo;
-				let { getServiceRegistryServices } = await import(
-					"./../../custom/helpers/globalData/serviceRegistry.js"
-				);
 				if (id) {
 					microserviceInfo = await getServiceRegistryServices({
 						id,

@@ -4,7 +4,7 @@ import {
 	serviceRegistry,
 	serviceRegistryApp,
 	appOptions,
-} from "../../digitalniweb-types/customFunctions/globalData.js";
+} from "../../digitalniweb-types/customFunctions/globalData";
 import { microservicesArray } from "../../digitalniweb-custom/variables/microservices.js";
 import {
 	microservices,
@@ -12,8 +12,8 @@ import {
 	microserviceInfoType,
 	appInfoParametersType,
 	appInfoType,
-} from "../../digitalniweb-types/index.js";
-import { globalData } from "../../digitalniweb-types/models/globalData.js";
+} from "../../digitalniweb-types/index";
+import { globalData } from "../../digitalniweb-types/models/globalData";
 import appCache from "./appCache.js";
 import { microserviceCall } from "./remoteProcedureCall.js";
 
@@ -23,7 +23,7 @@ import sleep from "../functions/sleep.js";
 import {
 	getServiceRegistryInfo,
 	getServiceRegistryServices,
-} from "../../custom/helpers/globalData/serviceRegistry.js";
+} from "../../digitalniweb-custom/helpers/serviceRegistry.js";
 
 type getServiceOptions = {
 	name: microservices;

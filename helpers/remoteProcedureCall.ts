@@ -29,7 +29,7 @@ type appCallOptions = Omit<msCallOptions, "id">;
 
 export async function microserviceCall(
 	options: msCallOptions
-): Promise<AxiosResponse<any, any>["data"] | false> {
+): Promise<AxiosResponse<any, any>["data"]> {
 	// Primarily used for microservice calls
 	const { name, id }: msCallOptions = options;
 	let serviceName: microservices | undefined;
@@ -47,7 +47,12 @@ export async function microserviceCall(
 		id,
 	});
 
-	if (service === undefined) return false;
+	if (service === undefined) {
+		console.log(
+			"Microservice is undefined, wasn't found in cache or in serviceRegistry."
+		);
+		return false;
+	}
 	return makeCall(service, options);
 }
 
@@ -108,6 +113,6 @@ async function makeCall(
 		headers,
 	});
 
-	// axiosResponse throws error on axios error
-	return axiosResponse.data;
+	// axiosResponse throws error on axios error, if data is null on remote server the null is returned as empty string
+	return axiosResponse.data || null;
 }

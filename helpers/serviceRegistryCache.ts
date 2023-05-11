@@ -190,12 +190,8 @@ export async function getMicroservice(
 	}
 	if (!service) {
 		if (service === undefined) {
+			let microserviceInfo: false | undefined | microserviceRegistryInfo;
 			if (process.env.MICROSERVICE_NAME === "globalData") {
-				// !!! dodělat - vytvorit api a kontrolery a helpery v nich ktere pouziji zde... Nazvy jako o par radku dole to 'path'
-				let microserviceInfo:
-					| false
-					| undefined
-					| microserviceRegistryInfo;
 				if (id) {
 					microserviceInfo = await getServiceRegistryServices({
 						id,
@@ -205,26 +201,27 @@ export async function getMicroservice(
 						name,
 					});
 				}
-				if (!microserviceInfo) return undefined;
-
-				let mainMicroservice = microserviceInfo.services.find(
-					(e) =>
-						e.id ==
-						(microserviceInfo as microserviceRegistryInfo).mainId
-				);
-
-				if (!mainMicroservice) return undefined;
-
-				serviceRegistryCache[microserviceInfo.name] = microserviceInfo;
-				service = mainMicroservice;
 			} else {
 				let path = `/api/serviceregistry/${name}`;
 				if (id) path = `/api/serviceregistry/getbyid/${id}`;
-				service = (await microserviceCall({
+				microserviceInfo = await microserviceCall({
 					name: "globalData",
 					path,
-				})) as globalData.ServiceRegistry | undefined;
+				});
 			}
+			if (!microserviceInfo) return undefined;
+
+			let mainMicroservice = microserviceInfo.services.find(
+				(e) =>
+					e.id ==
+					(microserviceInfo as microserviceRegistryInfo).mainId
+			);
+
+			if (!mainMicroservice) return undefined;
+
+			serviceRegistryCache[microserviceInfo.name] = microserviceInfo;
+			service = mainMicroservice;
+
 			if (service === undefined) return undefined;
 			setMicroservice({ name, info: service });
 		}

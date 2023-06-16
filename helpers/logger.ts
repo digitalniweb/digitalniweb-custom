@@ -59,14 +59,12 @@ const customBELogger = function (
 	customErrorObject: customErrorObject,
 	req: Request | false = false
 ) {
-	// customErrorObject = {error, code, message, data} // error = JS error, code and message are custom, data is object with additional data which will be appended to response. Everything is optional
-	// req = http request or false
 	let defaultErrorCode = 500;
-	let errorCode =
+	let errorCode: number | string =
 		customErrorObject?.code ||
 		customErrorObject?.error?.code ||
 		defaultErrorCode;
-	let errorMessage =
+	let errorMessage: string =
 		customErrorObject?.message ||
 		customErrorObject?.error?.message ||
 		"Something went wrong";

@@ -5,4 +5,5 @@ export const microservicesArray = [
 	"globalData",
 	"content",
 	"nginx",
+	"emails",
 ] as const;

@@ -85,8 +85,10 @@ async function makeCall(
 	}: msCallOptions = options;
 	let finalHost =
 		service.host === process.env.HOST ? "localhost" : service.host;
+	if (process.env.NODE_ENV === "development") finalHost = "localhost";
 	let finalProtocol =
 		finalHost === "localhost" && protocol === "https" ? "http" : protocol;
+	if (process.env.NODE_ENV === "development") finalProtocol = "http";
 	let finalPath =
 		`${finalProtocol}://${finalHost}:${service.port}` +
 		(path[0] !== "/" ? "/" : "") +

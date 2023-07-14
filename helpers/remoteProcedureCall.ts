@@ -77,14 +77,18 @@ async function makeCall(
 ) {
 	const {
 		req,
-		protocol = "http",
+		protocol = "https",
 		path,
 		method = "GET",
 		data = {}, // POST data
 		params = {}, // GET parameters (query)
 	}: msCallOptions = options;
+	let finalHost =
+		service.host === process.env.HOST ? "localhost" : service.host;
+	let finalProtocol =
+		finalHost === "localhost" && protocol === "https" ? "http" : protocol;
 	let finalPath =
-		`${protocol}://${service.host}:${service.port}` +
+		`${finalProtocol}://${finalHost}:${service.port}` +
 		(path[0] !== "/" ? "/" : "") +
 		path;
 

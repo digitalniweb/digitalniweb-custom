@@ -6,9 +6,10 @@ import {
 	authorizationListType,
 	authorizationMap,
 } from "../../digitalniweb-types/authorization/index.js";
-import { globalData } from "../../digitalniweb-types/models/globalData.js";
-import RoleType = globalData.Role;
-import PrivilegeType = globalData.Privilege;
+import {
+	Role as RoleType,
+	Privilege as PrivilegeType,
+} from "../../digitalniweb-types/models/globalData.js";
 
 async function getAuthorizationMap(req: Request) {
 	// appCache.del("map", "authorizationMap");
@@ -26,7 +27,7 @@ async function getAuthorizationMap(req: Request) {
 				let currentAuthorizationType = authorizationList[property];
 				if (currentAuthorizationType)
 					currentAuthorizationType.forEach(
-						(object: globalData.Role | globalData.Privilege) => {
+						(object: RoleType | PrivilegeType) => {
 							if (
 								!authorizationMap[property] ||
 								!authorizationMap[property]![object.type]

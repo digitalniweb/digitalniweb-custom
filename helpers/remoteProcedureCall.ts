@@ -11,7 +11,10 @@ import {
 	requestServiceRegistryInfo,
 	microserviceExists,
 } from "./serviceRegistryCache.js";
-import { globalData } from "../../digitalniweb-types/models/globalData.js";
+import {
+	ServiceRegistry,
+	App,
+} from "../../digitalniweb-types/models/globalData.js";
 import isObjectEmpty from "../functions/isObjectEmpty.js";
 
 type msCallOptions = {
@@ -69,7 +72,7 @@ export async function appCall(
 }
 
 async function makeCall(
-	service: globalData.ServiceRegistry | globalData.App,
+	service: ServiceRegistry | App,
 	options: msCallOptions | appCallOptions
 ) {
 	const {

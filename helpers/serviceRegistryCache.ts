@@ -13,7 +13,10 @@ import {
 	appInfoParametersType,
 	appInfoType,
 } from "../../digitalniweb-types/index.js";
-import { globalData } from "../../digitalniweb-types/models/globalData.js";
+import {
+	ServiceRegistry as ServiceRegistryType,
+	App as AppType,
+} from "../../digitalniweb-types/models/globalData.js";
 import appCache from "./appCache.js";
 import { microserviceCall } from "./remoteProcedureCall.js";
 
@@ -32,11 +35,11 @@ type getServiceOptions = {
 
 type setServiceOptions = {
 	name: microservices;
-	info: globalData.ServiceRegistry;
+	info: ServiceRegistryType;
 };
 type setAppOptions = {
 	name: string;
-	info: globalData.App;
+	info: AppType;
 };
 
 export function setMainIdService(options: {
@@ -68,7 +71,7 @@ export function setApp(options: setAppOptions) {
 	if (!serviceRegistryApp) {
 		serviceRegistryApp = {};
 	}
-	serviceRegistryApp[name] = info as globalData.App;
+	serviceRegistryApp[name] = info as AppType;
 }
 
 /**
@@ -88,19 +91,17 @@ export function setMicroservice(options: setServiceOptions) {
 		serviceRegistry[name] = {
 			mainId: info.id,
 			name,
-			services: [info as globalData.ServiceRegistry],
+			services: [info as ServiceRegistryType],
 		};
 	} else {
 		let app = findCachedMicroserviceById(name, info.id);
 		if (app) {
-			serviceRegistry[name]?.services.push(
-				info as globalData.ServiceRegistry
-			);
+			serviceRegistry[name]?.services.push(info as ServiceRegistryType);
 		} else {
 			serviceRegistry[name] = {
 				mainId: info.id,
 				name,
-				services: [info as globalData.ServiceRegistry],
+				services: [info as ServiceRegistryType],
 			};
 		}
 		serviceRegistry[name]?.services;
@@ -113,9 +114,7 @@ export function setMicroservice(options: setServiceOptions) {
  * @param options
  * @returns
  */
-export async function getApp(
-	name: string
-): Promise<globalData.App | undefined> {
+export async function getApp(name: string): Promise<AppType | undefined> {
 	if (!name) return undefined;
 
 	let serviceRegistryAppCache: serviceRegistryApp | undefined =
@@ -130,18 +129,18 @@ export async function getApp(
 		let app = (await microserviceCall({
 			name: "globalData",
 			path: `/api/serviceregistry/app?name=${name}`,
-		})) as globalData.App | undefined;
+		})) as AppType | undefined;
 		if (!app) return undefined;
 		setApp({ name, info: app });
 		return app;
 	}
 
-	let app = serviceRegistryAppCache[name] as globalData.App | undefined;
+	let app = serviceRegistryAppCache[name] as AppType | undefined;
 	if (app === undefined) {
 		app = (await microserviceCall({
 			name: "globalData",
 			path: `/api/serviceregistry/app?name=${name}`,
-		})) as globalData.App | undefined;
+		})) as AppType | undefined;
 		if (!app) return undefined;
 		setApp({ name, info: app });
 	}
@@ -157,7 +156,7 @@ export async function getApp(
  */
 export async function getMicroservice(
 	options: getServiceOptions
-): Promise<globalData.ServiceRegistry | undefined> {
+): Promise<ServiceRegistryType | undefined> {
 	const { name, id } = options;
 	if (!microserviceExists(name)) return undefined;
 
@@ -179,7 +178,7 @@ export async function getMicroservice(
 
 	if (serviceRegistryCache === undefined) return undefined;
 
-	let service = undefined as globalData.ServiceRegistry | undefined;
+	let service = undefined as ServiceRegistryType | undefined;
 
 	if (id) {
 		service = serviceRegistryCache[name]?.services.find((e) => e.id == id);
@@ -232,7 +231,7 @@ export async function getMicroservice(
 export function findCachedMicroserviceById(
 	name: microservices,
 	id: number
-): globalData.ServiceRegistry | undefined {
+): ServiceRegistryType | undefined {
 	let serviceRegistryCache: serviceRegistry | undefined =
 		appCache.get("serviceRegistry");
 	if (!serviceRegistryCache?.[name]) return undefined;

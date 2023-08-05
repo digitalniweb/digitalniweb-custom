@@ -319,7 +319,7 @@ export async function registerCurrentApp() {
 		data: service,
 		method: "POST",
 		headers: {
-			Authorization: `Bearer ${process.env.GLOBALDATA_REGISTRY_API_KEY}`,
+			...addRegisterApiKeyAuthHeader(),
 		},
 	});
 }
@@ -385,7 +385,15 @@ export async function registerCurrentMicroservice() {
 		path: "/api/serviceregistry/register",
 		data: service,
 		method: "POST",
+		headers: {
+			...addRegisterApiKeyAuthHeader(),
+		},
 	});
+}
+function addRegisterApiKeyAuthHeader() {
+	return {
+		Authorization: `Bearer ${process.env.GLOBALDATA_REGISTRY_API_KEY}`,
+	};
 }
 
 /**

@@ -318,6 +318,9 @@ export async function registerCurrentApp() {
 		path: "/api/serviceregistry/app/register",
 		data: service,
 		method: "POST",
+		headers: {
+			Authorization: `Bearer ${process.env.GLOBALDATA_REGISTRY_API_KEY}`,
+		},
 	});
 }
 

@@ -26,16 +26,15 @@ type msCallOptions = {
 	method?: HTTPMethods;
 	data?: { [key: string]: any };
 	params?: { [key: string]: any };
+	headers?: HeadersInit;
 };
 
-type appCallOptions = Omit<msCallOptions, "id">;
+type appCallOptions = Omit<msCallOptions, "name"> & { name: string };
 
 export async function microserviceCall(
 	options: msCallOptions
 ): Promise<AxiosResponse<any, any>["data"]> {
-	// Primarily used for microservice calls
 	const { name, id }: msCallOptions = options;
-	let serviceName: microservices | undefined;
 	if (!microserviceExists(name)) return false;
 
 	if (name === process.env.MICROSERVICE_NAME) {
@@ -62,8 +61,7 @@ export async function microserviceCall(
 export async function appCall(
 	options: appCallOptions
 ): Promise<AxiosResponse<any, any>["data"] | false> {
-	// Primarily used for microservice calls
-	const { name }: msCallOptions = options;
+	const { name } = options;
 
 	let service = await getApp(name);
 
@@ -82,7 +80,8 @@ async function makeCall(
 		method = "GET",
 		data = {}, // POST data
 		params = {}, // GET parameters (query)
-	}: msCallOptions = options;
+		headers,
+	}: msCallOptions | appCallOptions = options;
 	let finalHost =
 		service.host === process.env.HOST ? "localhost" : service.host;
 	if (process.env.NODE_ENV === "development") finalHost = "localhost";
@@ -94,7 +93,7 @@ async function makeCall(
 		(path[0] !== "/" ? "/" : "") +
 		path;
 
-	let headers = {};
+	let newHeaders = new Headers(headers);
 	if (!isObjectEmpty(data) && method === "GET") {
 		const url = new URL(finalPath);
 		Object.keys(data).forEach((key) =>
@@ -102,24 +101,25 @@ async function makeCall(
 		);
 		finalPath = url.toString();
 	}
-	if (req)
-		headers = {
-			"x-forwarded-for":
-				req && req.headers["x-forwarded-for"]
-					? (req.headers["x-forwarded-for"] as string)
-					: "service",
-			"user-agent":
-				req && req.headers["user-agent"]
-					? req.headers["user-agent"]
-					: "service",
-		};
+
+	if (req) {
+		if (req.headers["x-forwarded-for"])
+			newHeaders.set(
+				"x-forwarded-for",
+				req.headers["x-forwarded-for"] as string
+			);
+		else newHeaders.set("x-forwarded-for", "service");
+		if (req.headers["user-agent"])
+			newHeaders.set("user-agent", req.headers["user-agent"]);
+		else newHeaders.set("user-agent", "service");
+	}
 
 	let axiosResponse = await axios({
 		url: finalPath,
 		method,
 		data,
 		params,
-		headers,
+		headers: Object.fromEntries(newHeaders.entries()),
 	});
 
 	// axiosResponse throws error on axios error, if data is null on remote server the null is returned as empty string

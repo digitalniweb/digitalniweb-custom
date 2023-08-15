@@ -287,7 +287,7 @@ export async function registerCurrentApp() {
 	});
 
 	if (missingServiceInfo.length !== 0) {
-		/* customBELogger({
+		/* log({
 			message: `Couldn't register service ${
 				process.env.APP_NAME
 			}. ${missingServiceInfo.join(", ")} ${
@@ -356,7 +356,7 @@ export async function registerCurrentMicroservice() {
 	});
 
 	if (missingServiceInfo.length !== 0) {
-		/* customBELogger({
+		/* log({
 			message: `Couldn't register service ${
 				process.env.MICROSERVICE_NAME
 			}. ${missingServiceInfo.join(", ")} ${

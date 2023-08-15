@@ -34,3 +34,23 @@ export const addDays = (date: Date, days: number): Date => {
 	result.setDate(result.getDate() + days);
 	return result;
 };
+
+/**
+ * Should work in Mysql
+ * @return UTC time with timezone 0 in JS format `YYYY-MM-DDThh:mm:ss.sssZ`
+ */
+export const getUTCDateTime = (): string => {
+	const currentUtcDate = new Date();
+	const isoTimeString = currentUtcDate.toISOString();
+	return isoTimeString;
+};
+
+/**
+ * returns UTC time with timezone 0 in mysql format `YYYY-MM-DD hh:mm:ss`
+ */
+export const getUTCMysqlDateTime = (): string => {
+	const isoTimeString = getUTCDateTime();
+	const formattedUtcTimeString = isoTimeString.replace("T", " ").slice(0, -5);
+
+	return formattedUtcTimeString;
+};

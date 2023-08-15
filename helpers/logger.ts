@@ -1,18 +1,18 @@
 import { Request } from "express";
 
-import {
-	customLogObject,
-	logTypes,
-} from "../../digitalniweb-types/customHelpers/logger.js";
+import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 
 import {
 	ANSIStyle,
 	ANSIStyleKeys,
 	ANSIcolors,
 	logColors,
-	logTypesType,
+	logTypes,
+	logFunctions,
 } from "../variables/logs.js";
 import HTTPMethods from "../../digitalniweb-types/httpMethods.js";
+import { statuses } from "../../digitalniweb-types/customHelpers/statuses.js";
+import { getUTCDateTime } from "../functions/dateFunctions.js";
 
 /**
  * Properties are assigned from `customLogObject`.
@@ -47,33 +47,74 @@ type logObject = {
 };
 
 function getHttpErrorLogType(code: number) {
-	let type: logTypes = "success";
+	let type: statuses = "success";
 	if (code >= 500) type = "error";
 	else if (code >= 400) type = "warning";
 	else if (code >= 300) type = "info";
 	return type;
 }
 
+const consoleLogProduction: logFunction = (...args): void => {
+	consoleLogDev(...args);
+};
+const consoleLogDev: logFunction = (customLogObject, req): void => {
+	if (process.env.NODE_ENV === "production") return;
+	coloredLog(
+		{ customLogObject, req },
+		customLogObject.type,
+		customLogObject.status
+	);
+};
+
+const logApi: logFunction = (customLogObject, req): responseLogObject => {
+	let responseObject: responseLogObject = {
+		code: 200,
+		message: "OK",
+	};
+	return responseObject;
+};
+
+/**
+ * Unfortunately I can't do 1 level object like so {"api": "logApi"} with typescript, I can't type named functions. For typescript to work properly I need to do this nesting.
+ */
+const logFunctionsMap: {
+	[key in logTypes]?: {
+		[innerKey in (typeof logFunctions)[key]]: logFunction;
+	};
+} = {
+	consoleLog: { consoleLogDev },
+	consoleLogProduction: { consoleLogProduction },
+	api: { logApi },
+};
+
+type logFunction = typeof log;
 /**
  * In "dev" mode console.logs out log/error data
  *
  * In "production" mode sends `logObject` to logs_ms via redis message
  *
- * Returns
+ * !!! need to add user, website and app/ms data
+ *
+ * !!! should change/split to multiple logs - api calls, errors, changes made, authentications - type/status
  *
  * @param customLogObject
  * @param req
  * @returns object httpResponse {message, code} to send as http response if needed
  */
-const customBELogger = function (
+const log = function (
 	customLogObject: customLogObject,
-	req: Request | false = false
-): responseLogObject {
-	let responseObject: responseLogObject = {
-		code: 200,
-		message: "OK",
-	};
-	let logObject = {
+	req?: Request
+): responseLogObject | void {
+	const { type } = customLogObject;
+	if (!type) return;
+	customLogObject.date = getUTCDateTime();
+	let logValue = (
+		logFunctionsMap[type] as {
+			[key in (typeof logFunctions)[logTypes]]: logFunction;
+		}
+	)?.[logFunctions[type]]?.(customLogObject, req);
+	return logValue;
+	/* let logObject = {
 		message: customLogObject.message || customLogObject?.error?.message,
 	} as logObject;
 	if (customLogObject.error) {
@@ -83,7 +124,7 @@ const customBELogger = function (
 		} else
 			(["name", "stack", "message", "code"] as const).forEach(
 				(errorProp) => {
-					if (customLogObject?.error[errorProp]) {
+					if (customLogObject.error[errorProp]) {
 						if (!logObject.error) logObject.error = {};
 						logObject.error[errorProp] =
 							customLogObject.error[errorProp];
@@ -119,23 +160,19 @@ const customBELogger = function (
 	} else {
 	}
 
-	return responseObject;
+	return responseObject; */
 };
 
-const coloredLog = function (
-	message: any,
-	type: logTypesType | undefined,
-	messageType: logTypesType | undefined = undefined
-) {
+const coloredLog = function (message: any, type?: logTypes, status?: statuses) {
 	if (!message) return;
 	let style = customConsoleLogANSI({});
 
-	if (type && type !== "default") {
-		style = customConsoleLogANSI({ text: logColors[messageType ?? type] });
+	if (type) {
+		style = customConsoleLogANSI({ text: logColors[status ?? "default"] });
 		console.log(style, "-----------------------------------------------");
 		console.log(
 			customConsoleLogANSI({
-				background: logColors[type],
+				background: logColors[type ?? "default"],
 			}),
 			type
 		);
@@ -180,4 +217,4 @@ function createANSIStyle(style: ANSIStyleKeys) {
 	return `\x1b[${ANSIStyle[style]}m`;
 }
 
-export { customBELogger };
+export { log };

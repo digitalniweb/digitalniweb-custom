@@ -4,7 +4,8 @@ import IoRedis, {
 	RedisValue,
 	RedisCommander,
 } from "ioredis";
-import { customBELogger } from "./logger.js";
+import { log } from "./logger.js";
+import { commonError } from "../../digitalniweb-types/customHelpers/logger.js";
 
 class ServerCache {
 	static #_instance: ServerCache;
@@ -21,25 +22,25 @@ class ServerCache {
 	constructor() {
 		// https://www.javatpoint.com/redis-all-commands (redis commands(not IoRedis'))
 		this.#cache = new IoRedis();
-		this.#cache.on("error", (e) => {
-			console.log("error serverCache.ts");
-			console.log(e);
-			/* console.log(e.cause);
-			console.log(e.message);
-			console.log(e.name);
-			console.log(e.stack); */
+		this.#cache.on("error", (error) => {
+			log({
+				error,
+				message: "error serverCache.ts",
+				type: "consoleLogProduction",
+				status: "error",
+			});
 
 			// this is different not working anymore
-			/* if (!(e.code in this.#errors)) {
-				this.#errors[e.code] = 0;
+			/* if (!(error.code in this.#errors)) {
+				this.#errors[error.code] = 0;
 			}
-			this.#errors[e.code]++;
-			if (e.code === "ECONNREFUSED") {
+			this.#errors[error.code]++;
+			if (error.code === "ECONNREFUSED") {
 				let disconnectedMessage = `Microservice '${process.env.MICROSERVICE_NAME}' can't connect to Redis!`;
 				if (this.#disconnectOnCrash) {
-					if (this.#errors[e.code] >= this.#disconnectNumberOfTries) {
+					if (this.#errors[error.code] >= this.#disconnectNumberOfTries) {
 						// !!! there should also be some kind of notification in here that redis isn't working on this microservice
-						customBELogger({
+						log({
 							error: {
 								message: disconnectedMessage,
 							},
@@ -47,9 +48,9 @@ class ServerCache {
 						this.#cache.disconnect();
 					}
 				} else {
-					if (this.#errors[e.code] == this.#disconnectNumberOfTries) {
+					if (this.#errors[error.code] == this.#disconnectNumberOfTries) {
 						// !!! there should also be some kind of notification in here that redis isn't working on this microservice
-						customBELogger({
+						log({
 							error: {
 								message: disconnectedMessage,
 							},
@@ -62,8 +63,10 @@ class ServerCache {
 		this.#cache.on("connect", () => {
 			if ("ECONNREFUSED" in this.#errors)
 				delete this.#errors["ECONNREFUSED"];
-			customBELogger({
+			log({
 				message: `Redis connected to '${process.env.MICROSERVICE_NAME}'`,
+				type: "consoleLogProduction",
+				status: "success",
 			});
 		});
 	}
@@ -72,9 +75,11 @@ class ServerCache {
 		try {
 			this.#cache.connect();
 		} catch (error) {
-			customBELogger({
-				error,
+			log({
+				error: error as commonError,
 				message: `Microservice '${process.env.MICROSERVICE_NAME}' couldn't connect to Redis!`,
+				type: "consoleLogProduction",
+				status: "error",
 			});
 		}
 	}

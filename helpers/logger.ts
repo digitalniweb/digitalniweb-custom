@@ -1,6 +1,11 @@
 import { Request } from "express";
-
-import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
+import Publisher from "./publisherService.js";
+import {
+	commonError,
+	customLogObject,
+	logObject,
+	responseLogObject,
+} from "../../digitalniweb-types/customHelpers/logger.js";
 
 import {
 	ANSIStyle,
@@ -14,39 +19,7 @@ import HTTPMethods from "../../digitalniweb-types/httpMethods.js";
 import { statuses } from "../../digitalniweb-types/customHelpers/statuses.js";
 import { getUTCDateTime } from "../functions/dateFunctions.js";
 
-/**
- * Properties are assigned from `customLogObject`.
- *
- * Top level properties of `customLogObject` have priority over its nested properties (`message` > `error.message`)
- * @property {number|undefined} code
- * @property {string} message
- */
-type responseLogObject = {
-	code: number;
-	message: string;
-};
-
-/**
- * object / data to log (both in "dev" and "production")
- */
-type logObject = {
-	error?: {
-		message?: string;
-		name?: string;
-		stack?: string;
-		code?: number;
-	};
-	req?: {
-		ip?: string;
-		method?: HTTPMethods;
-		originalUrl?: string;
-	};
-	message?: string;
-	code?: number;
-	type: logTypes;
-};
-
-function getHttpErrorLogType(code: number) {
+function getHttpErrorLogStatus(code: number) {
 	let type: statuses = "success";
 	if (code >= 500) type = "error";
 	else if (code >= 400) type = "warning";
@@ -71,6 +44,70 @@ const logApi: logFunction = (customLogObject, req): responseLogObject => {
 		code: 200,
 		message: "OK",
 	};
+	let logObject = {} as logObject;
+	if (customLogObject?.error) {
+		logObject.error = {} as commonError;
+		if (typeof customLogObject.error === "string") {
+			logObject.error.message = customLogObject.error;
+		} else
+			(["name", "stack", "message", "code"] as const).forEach(
+				(errorProp) => {
+					if ((customLogObject?.error as commonError)[errorProp]) {
+						if (errorProp === "code") {
+							(logObject.error as commonError)[errorProp] = (
+								customLogObject.error as commonError
+							)[errorProp];
+						} else {
+							(logObject.error as commonError)[errorProp] = (
+								customLogObject.error as commonError
+							)[errorProp];
+						}
+					}
+				}
+			);
+	}
+	let message =
+		customLogObject.message ||
+		(typeof customLogObject?.error === "string"
+			? customLogObject.error
+			: customLogObject?.error?.message);
+	if (message) {
+		responseObject.message = message;
+		logObject.message = message;
+	}
+	logObject.type = customLogObject.type ?? "default";
+
+	let code =
+		customLogObject.code ||
+		(typeof customLogObject?.error !== "string" &&
+			customLogObject?.error?.code);
+	if (code) {
+		logObject.code = code;
+		responseObject.code = code;
+	}
+
+	let status = customLogObject.status;
+
+	if (status) logObject.status = status;
+	else if (code) logObject.status = getHttpErrorLogStatus(code);
+
+	if (req) {
+		logObject.req = {
+			ip: req.ip,
+			originalUrl: req.originalUrl,
+			method: req.method as HTTPMethods,
+		};
+	}
+	if (process.env.NODE_ENV === "development") {
+		coloredLog(logObject, logObject.type, logObject.status);
+	} else {
+		// send REDIS message
+		Publisher.publish(
+			`logData-${logFunctions[customLogObject.type]}`,
+			JSON.stringify(logObject)
+		);
+	}
+
 	return responseObject;
 };
 
@@ -144,7 +181,7 @@ const log = function (
 	let messageType = logObject.type;
 	if (code) {
 		logObject.type = "http";
-		messageType = getHttpErrorLogType(code);
+		messageType = getHttpErrorLogStatus(code);
 		logObject.code = code;
 		responseObject.code = code;
 	}

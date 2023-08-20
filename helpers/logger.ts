@@ -39,6 +39,18 @@ const consoleLogDev: logFunction = (customLogObject, req): void => {
 	);
 };
 
+const logAuthorization: logFunction = (
+	customLogObject,
+	req
+): responseLogObject => {
+	// !!! need to add all info + userId and path info and method
+	let responseObject: responseLogObject = {
+		code: 403,
+		message: "Forbidden",
+	};
+	return responseObject;
+};
+
 const logApi: logFunction = (customLogObject, req): responseLogObject => {
 	let responseObject: responseLogObject = {
 		code: 200,
@@ -98,10 +110,12 @@ const logApi: logFunction = (customLogObject, req): responseLogObject => {
 			method: req.method as HTTPMethods,
 		};
 	}
+	logObject.date = getUTCDateTime();
 	if (process.env.NODE_ENV === "development") {
 		coloredLog(logObject, logObject.type, logObject.status);
 	} else {
-		// send REDIS message
+		// !! Here or somewhere else before logging I can create cache which will last till the end of the day where I can save data about number of requests (or requests left), blocked status etc. This can be processed then. This can be used for paid API calls
+
 		Publisher.publish(
 			`logData-${logFunctions[customLogObject.type]}`,
 			JSON.stringify(logObject)
@@ -122,6 +136,7 @@ const logFunctionsMap: {
 	consoleLog: { consoleLogDev },
 	consoleLogProduction: { consoleLogProduction },
 	api: { logApi },
+	authorization: { logAuthorization },
 };
 
 type logFunction = typeof log;
@@ -151,53 +166,6 @@ const log = function (
 		}
 	)?.[logFunctions[type]]?.(customLogObject, req);
 	return logValue;
-	/* let logObject = {
-		message: customLogObject.message || customLogObject?.error?.message,
-	} as logObject;
-	if (customLogObject.error) {
-		if (typeof customLogObject.error === "string") {
-			logObject.error = {};
-			logObject.error.message = customLogObject.error;
-		} else
-			(["name", "stack", "message", "code"] as const).forEach(
-				(errorProp) => {
-					if (customLogObject.error[errorProp]) {
-						if (!logObject.error) logObject.error = {};
-						logObject.error[errorProp] =
-							customLogObject.error[errorProp];
-					}
-				}
-			);
-	}
-	if (req) logObject.type = "http";
-
-	let message = customLogObject.message || customLogObject.error?.message;
-	if (message) {
-		responseObject.message = message;
-	}
-	logObject.type = customLogObject.type ?? "default";
-
-	let code = customLogObject.code || customLogObject?.error?.code;
-	let messageType = logObject.type;
-	if (code) {
-		logObject.type = "http";
-		messageType = getHttpErrorLogStatus(code);
-		logObject.code = code;
-		responseObject.code = code;
-	}
-	if (req) {
-		logObject.req = {
-			ip: req.ip,
-			originalUrl: req.originalUrl,
-			method: req.method as HTTPMethods,
-		};
-	}
-	if (process.env.NODE_ENV === "development") {
-		coloredLog(logObject, logObject.type, messageType);
-	} else {
-	}
-
-	return responseObject; */
 };
 
 const coloredLog = function (message: any, type?: logTypes, status?: statuses) {

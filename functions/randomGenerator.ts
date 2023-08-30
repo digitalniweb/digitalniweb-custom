@@ -30,3 +30,74 @@ export function randomNumberOfLength(length: number = 10): number {
 	random = parseInt(random);
 	return random;
 }
+
+/**
+ * For generating strong password (not only) on frontend.
+ *
+ * Doesn't use 'node:crypto'
+ */
+export function generatePassword(
+	minLength: number = 15,
+	maxLength: number = 20,
+	options: {
+		includeLowercase?: boolean;
+		includeUppercase?: boolean;
+		includeNumbers?: boolean;
+		includeSymbols?: boolean;
+	} = {}
+): string {
+	const {
+		includeLowercase = true,
+		includeUppercase = true,
+		includeNumbers = true,
+		includeSymbols = true,
+	} = options;
+	const lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+	const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	const numberChars = "0123456789";
+	const symbolChars = "!@#$%^&*()_+[]{}|;:,.<>?";
+
+	let allChars = "";
+
+	if (includeLowercase) allChars += lowercaseChars;
+	if (includeUppercase) allChars += uppercaseChars;
+	if (includeNumbers) allChars += numberChars;
+	if (includeSymbols) allChars += symbolChars;
+
+	if (allChars.length === 0) {
+		allChars = lowercaseChars;
+	}
+
+	const passwordLength =
+		Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
+
+	let password = "";
+
+	if (includeLowercase) {
+		password +=
+			lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
+	}
+	if (includeUppercase) {
+		password +=
+			uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
+	}
+	if (includeNumbers) {
+		password += numberChars[Math.floor(Math.random() * numberChars.length)];
+	}
+	if (includeSymbols) {
+		password += symbolChars[Math.floor(Math.random() * symbolChars.length)];
+	}
+
+	const remainingChars = passwordLength - password.length;
+
+	for (let i = 0; i < remainingChars; i++) {
+		password += allChars[Math.floor(Math.random() * allChars.length)];
+	}
+
+	const shuffledPassword = password
+		.split("")
+		.sort(() => 0.5 - Math.random())
+		.join("");
+
+	return shuffledPassword;
+}

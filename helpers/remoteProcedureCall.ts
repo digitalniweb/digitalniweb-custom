@@ -16,6 +16,7 @@ import {
 	App,
 } from "../../digitalniweb-types/models/globalData.js";
 import isObjectEmpty from "../functions/isObjectEmpty.js";
+import { log } from "./logger.js";
 
 type msCallOptions = {
 	name: microservices;
@@ -38,9 +39,12 @@ export async function microserviceCall(
 	if (!microserviceExists(name)) return false;
 
 	if (name === process.env.MICROSERVICE_NAME) {
-		console.log(
-			"You don't need to call 'microserviceCall' for same microservice."
-		);
+		log({
+			type: "consoleLog",
+			message:
+				"You don't need to call 'microserviceCall' for same microservice.",
+			status: "info",
+		});
 		return false;
 	}
 
@@ -50,9 +54,12 @@ export async function microserviceCall(
 	});
 
 	if (service === undefined) {
-		console.log(
-			"Microservice is undefined, wasn't found in cache or in serviceRegistry."
-		);
+		log({
+			type: "consoleLog",
+			message:
+				"Microservice is undefined, wasn't found in cache or in serviceRegistry.",
+			status: "warning",
+		});
 		return false;
 	}
 	return makeCall(service, options);

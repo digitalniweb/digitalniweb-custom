@@ -313,7 +313,7 @@ export async function registerCurrentApp() {
 		language: serviceInfo["DEFAULT_LANGUAGE"],
 	};
 
-	await microserviceCall({
+	return await microserviceCall({
 		name: "globalData",
 		path: "/api/serviceregistry/app/register",
 		data: service,

@@ -53,9 +53,9 @@ export async function microserviceCall(
 		id,
 	});
 
-	if (service === undefined) {
+	if (!service) {
 		log({
-			type: "consoleLog",
+			type: "system",
 			message:
 				"Microservice is undefined, wasn't found in cache or in serviceRegistry.",
 			status: "warning",
@@ -72,7 +72,7 @@ export async function appCall(
 
 	let service = await getApp(name);
 
-	if (service === undefined) return false;
+	if (!service) return false;
 	return makeCall(service, options);
 }
 

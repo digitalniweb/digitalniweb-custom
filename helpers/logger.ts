@@ -43,12 +43,28 @@ const logAuthorization: logFunction = (
 	customLogObject,
 	req
 ): responseLogObject => {
-	// !!! need to add all info + userId and path info and method
+	// !!! need to add all info + userId and path info and method and send it to logs_ms
+	let logObject = {
+		user: { id: req?.userVerified?.id, usersMsId: req?.userVerified?.msId },
+	};
 	let responseObject: responseLogObject = {
 		code: 403,
 		message: "Forbidden",
 	};
 	return responseObject;
+};
+
+const logAuthentication: logFunction = (...args) => {
+	// !!! this needs to be changed, this is wrong
+	consoleLogDev(...args);
+};
+const logFunctionsOutput: logFunction = (...args) => {
+	// !!! this needs to be changed, this is wrong
+	consoleLogDev(...args);
+};
+const logSystemInfo: logFunction = (...args) => {
+	// !!! this needs to be changed, this is wrong
+	consoleLogDev(...args);
 };
 
 const logApi: logFunction = (customLogObject, req): responseLogObject => {
@@ -133,10 +149,13 @@ const logFunctionsMap: {
 		[innerKey in (typeof logFunctions)[key]]: logFunction;
 	};
 } = {
-	consoleLog: { consoleLogDev },
-	consoleLogProduction: { consoleLogProduction },
 	api: { logApi },
 	authorization: { logAuthorization },
+	authentication: { logAuthentication },
+	consoleLog: { consoleLogDev },
+	consoleLogProduction: { consoleLogProduction },
+	functions: { logFunctionsOutput },
+	system: { logSystemInfo },
 };
 
 type logFunction = typeof log;
@@ -160,6 +179,12 @@ const log = function (
 	const { type } = customLogObject;
 	if (!type) return;
 	customLogObject.date = getUTCDateTime();
+
+	// !!! I should add here App/Microservice Type and microservice/app ID
+	// !!! from cache which should I create (if is not yet)
+	customLogObject.serviceType;
+	customLogObject.serviceId;
+
 	let logValue = (
 		logFunctionsMap[type] as {
 			[key in (typeof logFunctions)[logTypes]]: logFunction;

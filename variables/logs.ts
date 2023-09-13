@@ -1,19 +1,28 @@
 import { statuses } from "../../digitalniweb-types/customHelpers/statuses";
 
 /**
- * @key `consoleLogProduction` In some cases e.g. 'Server initialization' we may want 'console.log' output in 'production' (as well). Generally shouldn't stay in production code but may be used for debugging.
- * @key `consoleLog` Same as `consoleLog` but will run only in "development" mode. Shouldn't stay in production code.
  * @key `api` For "users" API calls management when API is opened publicly/paid.
  * @key `authentication` For logging users logins; attempts to login, successful logins etc.
- * @key `moduleManipulation` When data in 'content_ms' (modules records) are changing.
+ * @key `authorization` If users try to do unauthorized actions.
+ * @key `consoleLogProduction` In some cases e.g. 'Server initialization' we may want 'console.log' output in 'production' (as well). Generally shouldn't stay in production code but may be used for debugging.
+ * @key `consoleLog` Same as `consoleLog` but will run only in "development" mode. Shouldn't stay in production code.
+ * @key `database` For any database manipulations (Couldn't find Language etc.).
+ * @key `functions` If system function (which don't include `system` log type) fails (i.e. in '~custom/helpers/)
+ * @key `moduleManipulation` When data in 'content_ms' (modules records) are changing. UI.e. user changed/removed/added article etc.
+ * @key `routing` When internal API routes (using Express) fails (most likely in next(error)).
+ * @key `system` When system functions fail (i.e. app register fails, microservice communication fails, etc.)
  */
 export const logFunctions = {
 	api: "logApi",
-	authorization: "logAuthorization",
 	authentication: "logAuthentication",
+	authorization: "logAuthorization",
 	consoleLogProduction: "consoleLogProduction",
 	consoleLog: "consoleLogDev",
+	database: "logDatabaseMessages",
+	functions: "logFunctionsOutput",
 	moduleManipulation: "logModuleManipulation",
+	routing: "logRoutingInfo",
+	system: "logSystemInfo",
 } as const;
 
 export type logTypes = keyof typeof logFunctions;

@@ -16,6 +16,7 @@ import {
 import {
 	ServiceRegistry as ServiceRegistryType,
 	App as AppType,
+	ServiceRegistry,
 } from "../../digitalniweb-types/models/globalData.js";
 import appCache from "./appCache.js";
 import { microserviceCall } from "./remoteProcedureCall.js";
@@ -380,15 +381,22 @@ export async function registerCurrentMicroservice() {
 		apiKey: serviceInfo["MICROSERVICE_API_KEY"],
 	};
 
-	await microserviceCall({
-		name: "globalData",
-		path: "/api/serviceregistry/register",
-		data: service,
-		method: "POST",
-		headers: {
-			...addRegisterApiKeyAuthHeader(),
-		},
-	});
+	let currentService: Promise<false | ServiceRegistry> =
+		await microserviceCall({
+			name: "globalData",
+			path: "/api/serviceregistry/register",
+			data: service,
+			method: "POST",
+			headers: {
+				...addRegisterApiKeyAuthHeader(),
+			},
+		});
+
+	if (currentService)
+		appCache.set("serviceInfo", {
+			...currentService,
+		});
+	console.log(appCache.get("serviceInfo"));
 }
 function addRegisterApiKeyAuthHeader() {
 	return {

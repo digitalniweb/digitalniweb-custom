@@ -32,11 +32,16 @@ const consoleLogProduction: logFunction = (...args): void => {
 };
 const consoleLogDev: logFunction = (customLogObject, req): void => {
 	if (process.env.NODE_ENV === "production") return;
-	coloredLog(
-		{ customLogObject, req },
-		customLogObject.type,
-		customLogObject.status
-	);
+	let logObject = customLogObject;
+	if (req)
+		logObject.req = {
+			method: req.method,
+			path: req.path,
+		};
+	if (logObject.code && !logObject.status)
+		logObject.status = getHttpErrorLogStatus(logObject.code);
+
+	coloredLog(logObject, customLogObject.type, customLogObject.status);
 };
 
 const logAuthorization: logFunction = (
@@ -65,6 +70,15 @@ const logFunctionsOutput: logFunction = (...args) => {
 const logSystemInfo: logFunction = (...args) => {
 	// !!! this needs to be changed, this is wrong
 	consoleLogDev(...args);
+};
+const logRoutingInfo: logFunction = (...args) => {
+	// !!! this needs to be changed, this is wrong
+	consoleLogDev(...args);
+	let responseObject: responseLogObject = {
+		code: 500,
+		message: "Something went wrong.",
+	};
+	return responseObject;
 };
 
 const logApi: logFunction = (customLogObject, req): responseLogObject => {
@@ -155,6 +169,7 @@ const logFunctionsMap: {
 	consoleLog: { consoleLogDev },
 	consoleLogProduction: { consoleLogProduction },
 	functions: { logFunctionsOutput },
+	routing: { logRoutingInfo },
 	system: { logSystemInfo },
 };
 
@@ -211,9 +226,24 @@ const coloredLog = function (message: any, type?: logTypes, status?: statuses) {
 		console.log(style, "Custom logout:");
 	}
 
+	// console.log(style, JSON.stringify(message, getCircularReplacer(), 2)); instead of next line if needed all req properties + uncomment getCircularReplacer
 	console.log(style, JSON.stringify(message, null, 2));
 	console.log(style, "-----------------------------------------------");
 };
+
+// get rid of circular structure
+// const getCircularReplacer = () => {
+// 	const seen = new WeakSet();
+// 	return (key: unknown, value: unknown) => {
+// 		if (typeof value === "object" && value !== null) {
+// 			if (seen.has(value)) {
+// 				return;
+// 			}
+// 			seen.add(value);
+// 		}
+// 		return value;
+// 	};
+// };
 
 type customConsoleLog = {
 	text?: keyof typeof ANSIcolors;

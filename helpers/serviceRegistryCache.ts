@@ -325,7 +325,7 @@ export async function registerCurrentApp() {
 		},
 	});
 
-	if (app) process.env.MICROSERVICE_ID = app.id;
+	if (app) process.env.APP_ID = app.id;
 
 	return app;
 }

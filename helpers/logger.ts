@@ -41,6 +41,14 @@ const consoleLogDev: logFunction = (customLogObject, req): void => {
 	if (logObject.code && !logObject.status)
 		logObject.status = getHttpErrorLogStatus(logObject.code);
 
+	if (process.env.APP_ID) {
+		logObject.serviceType = "app";
+		logObject.serviceId = process.env.APP_ID;
+	} else if (process.env.MICROSERVICE_ID) {
+		logObject.serviceType = "microservice";
+		logObject.serviceId = process.env.MICROSERVICE_ID;
+	}
+
 	coloredLog(logObject, customLogObject.type, customLogObject.status);
 };
 

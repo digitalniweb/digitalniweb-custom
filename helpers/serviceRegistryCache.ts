@@ -29,6 +29,9 @@ import {
 	getServiceRegistryInfo,
 	getServiceRegistryServices,
 } from "../../custom/helpers/globalData/serviceRegistry.js";
+import Microservice from "../../server/models/globalData/microservice.js";
+import { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
+import { log } from "./logger.js";
 
 type getServiceOptions = {
 	name: microservices;
@@ -428,8 +431,13 @@ export async function requestServiceRegistryInfo(
 		serviceRegistryCache.globalData = response;
 		appCache.set("serviceRegistry", serviceRegistryCache);
 		return true;
-	} catch (error) {
-		console.log(error);
+	} catch (error: any) {
+		log({
+			type: "functions",
+			status: "warning",
+			message: "Request service registry info failed.",
+			error,
+		});
 		return false;
 	}
 }
@@ -473,4 +481,42 @@ function requestServiceRegistryInfoFromRedisEvent(
 		item.off(event, listener);
 		reject("Timed out request service registry info from Redis event");
 	});
+}
+
+export async function getMainServiceRegistryId(
+	microservice: microservices
+): Promise<number | null> {
+	try {
+		let id = appCache.get(microservice, "mainServiceRegistryId") as
+			| number
+			| undefined;
+		if (id) return id;
+
+		let ms: MicroserviceType | null;
+		if (process.env.MICROSERVICE_NAME === "globalData") {
+			ms = await Microservice.findOne({
+				where: {
+					name: microservice,
+				},
+			});
+		} else {
+			ms = (await microserviceCall({
+				name: "globalData",
+				path: `/api/serviceregistry/getmainbyname/${microservice}`,
+				method: "GET",
+			})) as MicroserviceType | null;
+		}
+		if (ms === null || !ms.mainServiceRegistryId) return null;
+		id = ms.mainServiceRegistryId;
+		appCache.set(microservice, id, "mainServiceRegistryId");
+		return id;
+	} catch (error: any) {
+		log({
+			type: "functions",
+			status: "warning",
+			message: "Get main service registry id by name failed.",
+			error,
+		});
+		return null;
+	}
 }

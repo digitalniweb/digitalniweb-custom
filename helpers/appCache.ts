@@ -8,7 +8,7 @@ class AppCache {
 	#cache;
 	#namespaceSeparator = "###";
 
-	constructor(ttlSeconds: number) {
+	constructor(ttlSeconds: number = 20) {
 		this.#cache = new NodeCache({
 			stdTTL: ttlSeconds,
 			checkperiod: ttlSeconds * 0.2,

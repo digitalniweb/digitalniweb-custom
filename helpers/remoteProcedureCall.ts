@@ -18,6 +18,10 @@ import {
 import isObjectEmpty from "../functions/isObjectEmpty.js";
 import { log } from "./logger.js";
 
+/**
+ * @property { [key: string]: any } `data` POST data
+ * @property { [key: string]: any } `params` GET parameters (query)
+ */
 type msCallOptions = {
 	name: microservices;
 	req?: Request;

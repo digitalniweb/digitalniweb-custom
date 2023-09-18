@@ -66,7 +66,17 @@ export async function microserviceCall(
 		});
 		return false;
 	}
+	options.headers = {
+		...options.headers,
+		...addRegisterApiKeyAuthHeader(),
+	};
 	return makeCall(service, options);
+}
+
+function addRegisterApiKeyAuthHeader() {
+	return {
+		Authorization: `Bearer ${process.env.GLOBALDATA_REGISTRY_API_KEY}`,
+	};
 }
 
 export async function appCall(

@@ -102,21 +102,21 @@ const logApi: logFunction = (customLogObject, req): responseLogObject => {
 		if (typeof customLogObject.error === "string") {
 			logObject.error.message = customLogObject.error;
 		} else
-			(["name", "stack", "message", "code"] as const).forEach(
-				(errorProp) => {
-					if ((customLogObject?.error as commonError)[errorProp]) {
-						if (errorProp === "code") {
-							(logObject.error as commonError)[errorProp] = (
-								customLogObject.error as commonError
-							)[errorProp];
-						} else {
-							(logObject.error as commonError)[errorProp] = (
-								customLogObject.error as commonError
-							)[errorProp];
-						}
+			(
+				["name", "stack", "message", "code"] as (keyof commonError)[]
+			).forEach((errorProp) => {
+				if ((customLogObject?.error as commonError)[errorProp]) {
+					if (errorProp === "code") {
+						(logObject.error as commonError)[errorProp] = (
+							customLogObject.error as commonError
+						)[errorProp];
+					} else {
+						(logObject.error as commonError)[errorProp] = (
+							customLogObject.error as commonError
+						)[errorProp];
 					}
 				}
-			);
+			});
 	}
 	let message =
 		customLogObject.message ||

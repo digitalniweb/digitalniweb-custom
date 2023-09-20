@@ -26,10 +26,11 @@ import Publisher from "./../../digitalniweb-custom/helpers/publisherService.js";
 import Subscriber from "./../../digitalniweb-custom/helpers/subscriberService.js";
 import sleep from "../functions/sleep.js";
 import {
+	getMainServiceRegistry,
 	getServiceRegistryInfo,
 	getServiceRegistryServices,
 } from "../../custom/helpers/globalData/serviceRegistry.js";
-import Microservice from "../../server/models/globalData/microservice.js";
+
 import { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
 import { log } from "./logger.js";
 
@@ -483,11 +484,7 @@ export async function getMainServiceRegistryId(
 
 		let ms: MicroserviceType | null;
 		if (process.env.MICROSERVICE_NAME === "globalData") {
-			ms = await Microservice.findOne({
-				where: {
-					name: microservice,
-				},
-			});
+			ms = await getMainServiceRegistry(microservice);
 		} else {
 			ms = (await microserviceCall({
 				name: "globalData",

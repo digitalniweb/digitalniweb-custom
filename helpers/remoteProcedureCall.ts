@@ -17,6 +17,7 @@ import {
 } from "../../digitalniweb-types/models/globalData.js";
 import isObjectEmpty from "../functions/isObjectEmpty.js";
 import { log } from "./logger.js";
+import isArray from "../functions/isArray.js";
 
 /**
  * @property { [key: string]: any } `data` POST data
@@ -117,9 +118,13 @@ async function makeCall(
 	let newHeaders = new Headers(headers);
 	if (!isObjectEmpty(data) && method === "GET") {
 		const url = new URL(finalPath);
-		Object.keys(data).forEach((key) =>
-			url.searchParams.append(key, data[key])
-		);
+		Object.keys(data).forEach((key) => {
+			if (isArray(data[key])) {
+				data[key].forEach((el: any) => {
+					url.searchParams.append(key, el);
+				});
+			} else url.searchParams.append(key, data[key]);
+		});
 		finalPath = url.toString();
 	}
 

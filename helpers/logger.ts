@@ -36,6 +36,7 @@ const consoleLogDev: logFunction = (customLogObject, req): void => {
 	if (req) {
 		logObject.req = {
 			method: req.method,
+			originalUrl: req.originalUrl,
 			path: req.path,
 		};
 		logObject.data = req.body;

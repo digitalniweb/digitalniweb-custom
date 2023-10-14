@@ -3,7 +3,7 @@ import {
 	microserviceOptions,
 	serviceRegistry,
 	serviceRegistryApp,
-	appOptions,
+	newAppOptions,
 } from "../../digitalniweb-types/customFunctions/globalData.js";
 import { microservicesArray } from "../../digitalniweb-custom/variables/microservices.js";
 import {
@@ -309,7 +309,7 @@ export async function registerCurrentApp() {
 		);
 	}
 
-	let service: appOptions = {
+	let service: newAppOptions = {
 		port: serviceInfo["PORT"],
 		host: serviceInfo["HOST"],
 		uniqueName: serviceInfo["APP_UNIQUE_NAME"],

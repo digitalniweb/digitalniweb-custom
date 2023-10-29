@@ -27,9 +27,6 @@ function getHttpErrorLogStatus(code: number) {
 	return type;
 }
 
-const consoleLogProduction: logFunction = (...args): void => {
-	consoleLogDev(...args);
-};
 const consoleLogDev: logFunction = (customLogObject, req): void => {
 	if (process.env.NODE_ENV === "production") return;
 	let logObject = customLogObject;
@@ -55,6 +52,10 @@ const consoleLogDev: logFunction = (customLogObject, req): void => {
 	coloredLog(logObject, customLogObject.type, customLogObject.status);
 };
 
+const consoleLogProduction: logFunction = (...args): void => {
+	consoleLogDev(...args);
+};
+
 const logAuthorization: logFunction = (
 	customLogObject,
 	req
@@ -71,6 +72,10 @@ const logAuthorization: logFunction = (
 };
 
 const logAuthentication: logFunction = (...args) => {
+	// !!! this needs to be changed, this is wrong
+	consoleLogDev(...args);
+};
+const logDatabaseMessages: logFunction = (...args) => {
 	// !!! this needs to be changed, this is wrong
 	consoleLogDev(...args);
 };
@@ -179,6 +184,7 @@ const logFunctionsMap: {
 	authentication: { logAuthentication },
 	consoleLog: { consoleLogDev },
 	consoleLogProduction: { consoleLogProduction },
+	database: { logDatabaseMessages },
 	functions: { logFunctionsOutput },
 	routing: { logRoutingInfo },
 	system: { logSystemInfo },

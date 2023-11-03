@@ -73,7 +73,7 @@ class ServerCache {
 
 	async connect() {
 		try {
-			this.#cache.connect();
+			await this.#cache.connect();
 		} catch (error) {
 			log({
 				error: error as commonError,

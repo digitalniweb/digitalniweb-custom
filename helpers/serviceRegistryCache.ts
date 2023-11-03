@@ -325,8 +325,9 @@ export async function registerCurrentApp() {
 		data: service,
 		method: "POST",
 	});
+	if (!app) throw new Error("Couldn't register app.");
 
-	if (app) process.env.APP_ID = app.id;
+	process.env.APP_ID = app.id;
 
 	return app;
 }
@@ -363,13 +364,6 @@ export async function registerCurrentMicroservice() {
 	});
 
 	if (missingServiceInfo.length !== 0) {
-		/* log({
-			message: `Couldn't register service ${
-				process.env.MICROSERVICE_NAME
-			}. ${missingServiceInfo.join(", ")} ${
-				missingServiceInfo.length === 1 ? "is" : "are"
-			} missing in .env file.`,
-		}); */
 		throw new Error(
 			`Couldn't register service ${
 				process.env.MICROSERVICE_NAME

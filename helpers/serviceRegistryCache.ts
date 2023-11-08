@@ -30,6 +30,7 @@ import {
 	getServiceRegistryInfo,
 	getServiceRegistryServices,
 } from "../../custom/helpers/globalData/serviceRegistry.js";
+import { serviceRegistryServices } from "../../digitalniweb-types/custom/helpers/globalData/serviceRegistry.js";
 
 import { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
 import { log } from "./logger.js";
@@ -100,8 +101,8 @@ export function setMicroservice(options: setServiceOptions) {
 			services: [info as ServiceRegistryType],
 		};
 	} else {
-		let app = findCachedMicroserviceById(name, info.id);
-		if (app) {
+		let service = findCachedMicroserviceById(name, info.id);
+		if (service) {
 			serviceRegistry[name]?.services.push(info as ServiceRegistryType);
 		} else {
 			serviceRegistry[name] = {
@@ -154,18 +155,12 @@ export async function getApp(name: string): Promise<AppType | undefined> {
 }
 
 /**
- * returns main microservice or microservice by id from "serviceRegistry" cache
- * @param options
- * @options `name`: microservice name
- * @options `id?`: microservice ID
- * @returns
+ *
+ * @returns cached serviceRegistry or at least load `globalData` inside. If `globalData` couldn't be fetched return undefined
  */
-export async function getMicroservice(
-	options: getServiceOptions
-): Promise<ServiceRegistryType | undefined> {
-	const { name, id } = options;
-	if (!microserviceExists(name)) return undefined;
-
+export async function getServiceRegistry(): Promise<
+	serviceRegistry | undefined
+> {
 	let serviceRegistryCache: serviceRegistry | undefined =
 		appCache.get("serviceRegistry");
 	if (serviceRegistryCache === undefined) {
@@ -182,33 +177,49 @@ export async function getMicroservice(
 		serviceRegistryCache = appCache.get("serviceRegistry");
 	}
 
+	return serviceRegistryCache;
+}
+
+/**
+ * @returns all microservice shards (all microservices of the same name i.e. 'websites_ms')
+ */
+export async function getAllMicroserviceShards(
+	name: microservices
+): Promise<microserviceRegistryInfo["services"] | undefined> {
+	if (!microserviceExists(name)) return undefined;
+}
+
+/**
+ * @param options
+ * @options `name`: microservice name
+ * @options `id?`: microservice ID
+ * @returns main microservice or microservice by id from "serviceRegistry" cache
+ */
+export async function getMicroservice(
+	options: getServiceOptions
+): Promise<ServiceRegistryType | undefined> {
+	// !!! this is wrong !!!
+	const { name, id } = options;
+	if (!microserviceExists(name)) return undefined;
+
+	let serviceRegistryCache = await getServiceRegistry();
+
 	if (serviceRegistryCache === undefined) return undefined;
 
 	let service = undefined as ServiceRegistryType | undefined;
 
-	if (id) {
-		service = serviceRegistryCache[name]?.services.find((e) => e.id == id);
-	} else {
-		let serviceId = (serviceRegistryCache as serviceRegistry)[name]?.mainId;
-		if (serviceId !== undefined)
-			service = findCachedMicroserviceById(name, serviceId);
-	}
+	let findId: number | undefined = id || serviceRegistryCache[name]?.mainId;
+	if (findId === undefined) return undefined;
+
+	service = findCachedMicroserviceById(name, findId);
+
 	if (!service) {
 		if (service === undefined) {
-			let microserviceInfo: false | undefined | microserviceRegistryInfo;
+			let microserviceInfo: serviceRegistryServices;
 			if (process.env.MICROSERVICE_NAME === "globalData") {
-				if (id) {
-					microserviceInfo = await getServiceRegistryServices({
-						id,
-					});
-				} else {
-					microserviceInfo = await getServiceRegistryServices({
-						name,
-					});
-				}
+				microserviceInfo = await getServiceRegistryServices(name);
 			} else {
 				let path = `/api/serviceregistry/${name}`;
-				if (id) path = `/api/serviceregistry/getbyid/${id}`;
 				microserviceInfo = await microserviceCall({
 					name: "globalData",
 					path,
@@ -228,7 +239,12 @@ export async function getMicroservice(
 			service = mainMicroservice;
 
 			if (service === undefined) return undefined;
-			setMicroservice({ name, info: service });
+			console.log(
+				"cached serviceRegistry",
+				appCache.get("serviceRegistry")
+			);
+
+			// setMicroservice({ name, info: service });
 		}
 	}
 	return service;

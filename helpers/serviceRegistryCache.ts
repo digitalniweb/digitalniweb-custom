@@ -128,7 +128,6 @@ export async function getServiceRegistry(): Promise<
 > {
 	let serviceRegistryCache: serviceRegistry | undefined =
 		appCache.get("serviceRegistry");
-	console.log(serviceRegistryCache);
 
 	if (serviceRegistryCache === undefined) {
 		if (process.env.MICROSERVICE_NAME === "globalData") {

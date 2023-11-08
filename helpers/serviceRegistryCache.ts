@@ -198,7 +198,6 @@ export async function getAllMicroserviceShards(
 export async function getMicroservice(
 	options: getServiceOptions
 ): Promise<ServiceRegistryType | undefined> {
-	// !!! this is wrong !!!
 	const { name, id } = options;
 	if (!microserviceExists(name)) return undefined;
 
@@ -209,9 +208,7 @@ export async function getMicroservice(
 	let service = undefined as ServiceRegistryType | undefined;
 
 	let findId: number | undefined = id || serviceRegistryCache[name]?.mainId;
-	if (findId === undefined) return undefined;
-
-	service = findCachedMicroserviceById(name, findId);
+	if (findId) service = findCachedMicroserviceById(name, findId);
 
 	if (!service) {
 		if (service === undefined) {
@@ -239,10 +236,6 @@ export async function getMicroservice(
 			service = mainMicroservice;
 
 			if (service === undefined) return undefined;
-			console.log(
-				"cached serviceRegistry",
-				appCache.get("serviceRegistry")
-			);
 
 			// setMicroservice({ name, info: service });
 		}

@@ -26,13 +26,11 @@ import Publisher from "./../../digitalniweb-custom/helpers/publisherService.js";
 import Subscriber from "./../../digitalniweb-custom/helpers/subscriberService.js";
 import sleep from "../functions/sleep.js";
 import {
-	getMainServiceRegistry,
 	getServiceRegistryInfo,
 	getServiceRegistryServices,
 } from "../../custom/helpers/globalData/serviceRegistry.js";
 import { serviceRegistryServices } from "../../digitalniweb-types/custom/helpers/globalData/serviceRegistry.js";
 
-import { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
 import { log } from "./logger.js";
 
 type getServiceOptions = {
@@ -82,41 +80,6 @@ export function setApp(options: setAppOptions) {
 }
 
 /**
- * sets "serviceRegistry" cache for microservices
- * @param options
- * @returns
- */
-export function setMicroservice(options: setServiceOptions) {
-	const { name, info } = options;
-	if (!info || !name) return false;
-	let serviceRegistry = appCache.get("serviceRegistry") as
-		| serviceRegistry
-		| undefined;
-
-	if (!serviceRegistry) {
-		serviceRegistry = {} as serviceRegistry;
-		serviceRegistry[name] = {
-			mainId: info.id,
-			name,
-			services: [info as ServiceRegistryType],
-		};
-	} else {
-		let service = findCachedMicroserviceById(name, info.id);
-		if (service) {
-			serviceRegistry[name]?.services.push(info as ServiceRegistryType);
-		} else {
-			serviceRegistry[name] = {
-				mainId: info.id,
-				name,
-				services: [info as ServiceRegistryType],
-			};
-		}
-		serviceRegistry[name]?.services;
-	}
-	return true;
-}
-
-/**
  * returns app from "serviceRegistryApp" cache
  * @param options
  * @returns
@@ -163,6 +126,7 @@ export async function getServiceRegistry(): Promise<
 > {
 	let serviceRegistryCache: serviceRegistry | undefined =
 		appCache.get("serviceRegistry");
+
 	if (serviceRegistryCache === undefined) {
 		if (process.env.MICROSERVICE_NAME === "globalData") {
 			let serviceRegistryInfo = await getServiceRegistryInfo();
@@ -236,8 +200,6 @@ export async function getMicroservice(
 			service = mainMicroservice;
 
 			if (service === undefined) return undefined;
-
-			// setMicroservice({ name, info: service });
 		}
 	}
 	return service;
@@ -474,38 +436,4 @@ function requestServiceRegistryInfoFromRedisEvent(
 		item.off(event, listener);
 		reject("Timed out request service registry info from Redis event");
 	});
-}
-
-export async function getMainServiceRegistryId(
-	microservice: microservices
-): Promise<number | null> {
-	try {
-		let id = appCache.get(microservice, "mainServiceRegistryId") as
-			| number
-			| undefined;
-		if (id) return id;
-
-		let ms: MicroserviceType | null;
-		if (process.env.MICROSERVICE_NAME === "globalData") {
-			ms = await getMainServiceRegistry(microservice);
-		} else {
-			ms = (await microserviceCall({
-				name: "globalData",
-				path: `/api/serviceregistry/getmainbyname/${microservice}`,
-				method: "GET",
-			})) as MicroserviceType | null;
-		}
-		if (ms === null || !ms.mainServiceRegistryId) return null;
-		id = ms.mainServiceRegistryId;
-		appCache.set(microservice, id, "mainServiceRegistryId");
-		return id;
-	} catch (error: any) {
-		log({
-			type: "functions",
-			status: "warning",
-			message: "Get main service registry id by name failed.",
-			error,
-		});
-		return null;
-	}
 }

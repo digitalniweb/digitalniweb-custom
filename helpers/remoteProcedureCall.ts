@@ -2,13 +2,11 @@ import axios, { AxiosResponse } from "axios";
 
 import { Request } from "express";
 import { HTTPMethods } from "../../digitalniweb-types/httpMethods.js";
-import { microservicesArray } from "../variables/microservices.js";
 import { microservices } from "../../digitalniweb-types/index.js";
-import appCache from "./appCache.js";
 import {
+	getAllServiceRegistryServices,
 	getApp,
 	getMicroservice,
-	requestServiceRegistryInfo,
 	microserviceExists,
 } from "./serviceRegistryCache.js";
 import {
@@ -18,10 +16,12 @@ import {
 import isObjectEmpty from "../functions/isObjectEmpty.js";
 import { log } from "./logger.js";
 import isArray from "../functions/isArray.js";
+import firstNonNullPromise from "../functions/firstNonNullPromise.js";
 
 /**
  * @property { [key: string]: any } `data` POST data
  * @property { [key: string]: any } `params` GET parameters (query)
+ * @property  'single' | 'all' `scope` 'single' calls single service (main if `id` is not supplied). 'all' creates calls to all services and waits for first non-null result.
  */
 type msCallOptions = {
 	name: microservices;
@@ -33,6 +33,8 @@ type msCallOptions = {
 	data?: { [key: string]: any };
 	params?: { [key: string]: any };
 	headers?: HeadersInit;
+	scope?: "single" | "all";
+	timeout?: number;
 };
 
 type appCallOptions = Omit<msCallOptions, "name"> & { name: string };
@@ -40,7 +42,7 @@ type appCallOptions = Omit<msCallOptions, "name"> & { name: string };
 export async function microserviceCall(
 	options: msCallOptions
 ): Promise<AxiosResponse<any, any>["data"]> {
-	const { name, id }: msCallOptions = options;
+	const { name, id, scope = "single" }: msCallOptions = options;
 	if (!microserviceExists(name)) return false;
 
 	if (name === process.env.MICROSERVICE_NAME) {
@@ -53,25 +55,59 @@ export async function microserviceCall(
 		return false;
 	}
 
-	let service = await getMicroservice({
-		name,
-		id,
-	});
-
-	if (!service) {
-		log({
-			type: "system",
-			message:
-				"Microservice is undefined, wasn't found in cache or in serviceRegistry.",
-			status: "warning",
+	let headers = createCallHeaders(options);
+	let finalPath;
+	if (scope === "single") {
+		let service = await getMicroservice({
+			name,
+			id,
 		});
-		return false;
+
+		if (!service) {
+			log({
+				type: "system",
+				message:
+					"Microservice is undefined, wasn't found in cache or in serviceRegistry.",
+				status: "warning",
+			});
+			return false;
+		}
+		finalPath = createCallPath(service, options);
+		return makeCall({
+			url: finalPath,
+			headers,
+			data: options.data,
+			method: options.method,
+			params: options.params,
+			timeout: options.timeout,
+		});
+	} else if (scope === "all") {
+		let services = await getAllServiceRegistryServices(name);
+		if (!services) {
+			log({
+				type: "system",
+				message:
+					"Microservices are undefined, weren't found in cache or in serviceRegistry.",
+				status: "warning",
+			});
+			return false;
+		}
+		let requestsToServices: Promise<unknown>[] = [];
+		services.forEach((service) => {
+			finalPath = createCallPath(service, options);
+			requestsToServices.push(
+				makeCall({
+					url: finalPath,
+					headers,
+					data: options.data,
+					method: options.method,
+					params: options.params,
+					timeout: options.timeout,
+				})
+			);
+		});
+		return firstNonNullPromise(requestsToServices);
 	}
-	options.headers = {
-		...options.headers,
-		...addRegisterApiKeyAuthHeader(),
-	};
-	return makeCall(service, options);
 }
 
 function addRegisterApiKeyAuthHeader() {
@@ -88,21 +124,27 @@ export async function appCall(
 	let service = await getApp(name);
 
 	if (!service) return false;
-	return makeCall(service, options);
+	let finalPath = createCallPath(service, options);
+	let headers = createCallHeaders(options);
+	return makeCall({
+		url: finalPath,
+		headers,
+		data: options.data,
+		method: options.method,
+		params: options.params,
+		timeout: options.timeout,
+	});
 }
 
-async function makeCall(
+function createCallPath(
 	service: ServiceRegistry | App,
 	options: msCallOptions | appCallOptions
 ) {
 	const {
-		req,
 		protocol = "https",
 		path,
 		method = "GET",
 		data = {}, // POST data
-		params = {}, // GET parameters (query)
-		headers,
 	}: msCallOptions | appCallOptions = options;
 	let finalHost =
 		service.host === process.env.HOST ? "localhost" : service.host;
@@ -115,7 +157,6 @@ async function makeCall(
 		(path[0] !== "/" ? "/" : "") +
 		path;
 
-	let newHeaders = new Headers(headers);
 	if (!isObjectEmpty(data) && method === "GET") {
 		const url = new URL(finalPath);
 		Object.keys(data).forEach((key) => {
@@ -127,7 +168,16 @@ async function makeCall(
 		});
 		finalPath = url.toString();
 	}
+	return finalPath;
+}
 
+function createCallHeaders(options: msCallOptions | appCallOptions) {
+	const { req, headers }: msCallOptions | appCallOptions = options;
+
+	let newHeaders = new Headers({
+		...headers,
+		...addRegisterApiKeyAuthHeader(),
+	});
 	if (req) {
 		if (req.headers["x-forwarded-for"])
 			newHeaders.set(
@@ -139,13 +189,34 @@ async function makeCall(
 			newHeaders.set("user-agent", req.headers["user-agent"]);
 		else newHeaders.set("user-agent", "service");
 	}
+	return Object.fromEntries(newHeaders.entries());
+}
+
+type remoteServiceCallInfo = {
+	url: string;
+	method?: HTTPMethods;
+	data?: { [key: string]: any };
+	params?: { [key: string]: any };
+	headers: { [key: string]: string };
+	timeout?: number;
+};
+async function makeCall(options: remoteServiceCallInfo) {
+	const {
+		url,
+		method = "GET",
+		data = {}, // POST data
+		params = {}, // GET parameters (query)
+		headers = {},
+		timeout = 120000, // default wait in miliseconds = 2 minutes. (0 = no timeout)
+	}: remoteServiceCallInfo = options;
 
 	let axiosResponse = await axios({
-		url: finalPath,
+		url,
 		method,
 		data,
 		params,
-		headers: Object.fromEntries(newHeaders.entries()),
+		timeout,
+		headers,
 	});
 
 	// axiosResponse throws error on axios error, if data is null on remote server the null is returned as empty string

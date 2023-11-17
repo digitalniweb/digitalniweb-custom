@@ -40,10 +40,6 @@ type getServiceOptions = {
 	id?: number;
 };
 
-type setServiceOptions = {
-	name: microservices;
-	info: ServiceRegistryType;
-};
 type setAppOptions = {
 	name: string;
 	info: AppType;
@@ -147,12 +143,63 @@ export async function getServiceRegistry(): Promise<
 }
 
 /**
+ * This doesn't return cached services but always fetches it from `globalData`. That's why it is used for setting cache in `setServiceServicesByName`.
+ * @param name `microservices`
+ * @returns `serviceRegistryServices`
+ */
+export async function getServiceServicesByName(
+	name: microservices
+): Promise<serviceRegistryServices> {
+	let microserviceInfo: serviceRegistryServices;
+	if (process.env.MICROSERVICE_NAME === "globalData") {
+		microserviceInfo = await getServiceRegistryServices(name);
+	} else {
+		let path = `/api/serviceregistry/${name}`;
+		microserviceInfo = await microserviceCall({
+			name: "globalData",
+			path,
+		});
+	}
+	return microserviceInfo;
+}
+
+/**
+ * Sets and overwrites cache for certain microservice registry information `MicroserviceRegistryInfo`
+ * Used when Redis messaging system sends `updateMicroserviceRegistryInfo` when any microservice is updated, added or removed. Then if there is this microservice cached then overwrite it.
+ * !!! this is not implemented, but needs to be!!!
+ * @param name `microservices`
+ * @returns boolean
+ */
+export async function setServiceServicesByName(
+	name: microservices
+): Promise<serviceRegistryServices> {
+	let services = await getServiceServicesByName(name);
+	if (!services) return false;
+	let serviceRegistryCache = await getServiceRegistry();
+	if (!serviceRegistryCache) return false;
+	serviceRegistryCache[name] = services;
+	return services;
+}
+
+/**
  * @returns all microservice shards (all microservices of the same name i.e. 'websites_ms')
  */
-export async function getAllMicroserviceShards(
+export async function getAllServiceRegistryServices(
 	name: microservices
 ): Promise<microserviceRegistryInfo["services"] | undefined> {
 	if (!microserviceExists(name)) return undefined;
+
+	let serviceRegistryCache = await getServiceRegistry();
+
+	if (serviceRegistryCache === undefined) return undefined;
+	let services = serviceRegistryCache[name];
+	if (services) return services.services;
+
+	let microserviceInfo = await getServiceServicesByName(name);
+	if (!microserviceInfo) return undefined;
+
+	serviceRegistryCache[name] = microserviceInfo;
+	return microserviceInfo.services;
 }
 
 /**
@@ -176,35 +223,18 @@ export async function getMicroservice(
 	let findId: number | undefined = id || serviceRegistryCache[name]?.mainId;
 	if (findId) service = findCachedMicroserviceById(name, findId);
 
-	if (!service) {
-		if (service === undefined) {
-			let microserviceInfo: serviceRegistryServices;
-			if (process.env.MICROSERVICE_NAME === "globalData") {
-				microserviceInfo = await getServiceRegistryServices(name);
-			} else {
-				let path = `/api/serviceregistry/${name}`;
-				microserviceInfo = await microserviceCall({
-					name: "globalData",
-					path,
-				});
-			}
-			if (!microserviceInfo) return undefined;
+	if (service) return service;
+	let microserviceInfo = await getServiceServicesByName(name);
+	if (!microserviceInfo) return undefined;
 
-			let mainMicroservice = microserviceInfo.services.find(
-				(e) =>
-					e.id ==
-					(microserviceInfo as microserviceRegistryInfo).mainId
-			);
+	let mainMicroservice = microserviceInfo.services.find(
+		(e) => e.id == (microserviceInfo as microserviceRegistryInfo).mainId
+	);
 
-			if (!mainMicroservice) return undefined;
+	if (!mainMicroservice) return undefined;
 
-			serviceRegistryCache[microserviceInfo.name] = microserviceInfo;
-			service = mainMicroservice;
-
-			if (service === undefined) return undefined;
-		}
-	}
-	return service;
+	serviceRegistryCache[name] = microserviceInfo;
+	return mainMicroservice;
 }
 
 export function findCachedMicroserviceById(

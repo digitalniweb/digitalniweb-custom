@@ -106,7 +106,7 @@ export async function microserviceCall(
 				})
 			);
 		});
-		return firstNonNullPromise(requestsToServices);
+		return await firstNonNullPromise(requestsToServices);
 	}
 }
 

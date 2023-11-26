@@ -1,5 +1,5 @@
-import { msCallOptions } from "~/digitalniweb-types/custom/helpers/remoteProcedureCall";
-import appCache from "./appCache";
+import { msCallOptions } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall";
+import appCache from "./appCache.js";
 import axios from "axios";
 
 type apiCacheMainKey = "apiCacheGetData" | "apiCacheMsAllId";

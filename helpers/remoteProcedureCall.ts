@@ -13,7 +13,7 @@ import {
 } from "../../digitalniweb-types/models/globalData.js";
 import { log } from "./logger.js";
 import firstNonNullPromise from "../functions/firstNonNullPromise.js";
-import { msCallOptions } from "~/digitalniweb-types/custom/helpers/remoteProcedureCall.js";
+import { msCallOptions } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import ApiAppCache from "./apiAppCache.js";
 
 type appCallOptions = Omit<msCallOptions, "name"> & { name: string };

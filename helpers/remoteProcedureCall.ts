@@ -1,8 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 
-import { Request } from "express";
 import { HTTPMethods } from "../../digitalniweb-types/httpMethods.js";
-import { microservices } from "../../digitalniweb-types/index.js";
 import {
 	getAllServiceRegistryServices,
 	getApp,
@@ -13,29 +11,10 @@ import {
 	ServiceRegistry,
 	App,
 } from "../../digitalniweb-types/models/globalData.js";
-import isObjectEmpty from "../functions/isObjectEmpty.js";
 import { log } from "./logger.js";
-import isArray from "../functions/isArray.js";
 import firstNonNullPromise from "../functions/firstNonNullPromise.js";
-
-/**
- * @property { [key: string]: any } `data` POST data
- * @property { [key: string]: any } `params` GET parameters (query)
- * @property  'single' | 'all' `scope` 'single' calls single service (main if `id` is not supplied). 'all' creates calls to all services and waits for first non-null result.
- */
-type msCallOptions = {
-	name: microservices;
-	req?: Request;
-	protocol?: string;
-	id?: number;
-	path: string;
-	method?: HTTPMethods;
-	data?: { [key: string]: any };
-	params?: { [key: string]: any };
-	headers?: HeadersInit;
-	scope?: "single" | "all";
-	timeout?: number;
-};
+import { msCallOptions } from "~/digitalniweb-types/custom/helpers/remoteProcedureCall.js";
+import ApiAppCache from "./apiAppCache.js";
 
 type appCallOptions = Omit<msCallOptions, "name"> & { name: string };
 
@@ -54,6 +33,10 @@ export async function microserviceCall(
 		});
 		return false;
 	}
+
+	// !!! apiCache not complete (saving + timeouts? + false / null? + appCall no implemented) and weird - should it be here?
+	let apiCache = ApiAppCache.get(options);
+	if (apiCache !== undefined) return apiCache;
 
 	let headers = createCallHeaders(options);
 	let finalPath;
@@ -106,7 +89,9 @@ export async function microserviceCall(
 				})
 			);
 		});
-		return await firstNonNullPromise(requestsToServices);
+		let response = await firstNonNullPromise(requestsToServices);
+
+		return response;
 	}
 }
 
@@ -140,12 +125,8 @@ function createCallPath(
 	service: ServiceRegistry | App,
 	options: msCallOptions | appCallOptions
 ) {
-	const {
-		protocol = "https",
-		path,
-		method = "GET",
-		data = {}, // POST data
-	}: msCallOptions | appCallOptions = options;
+	const { protocol = "https", path }: msCallOptions | appCallOptions =
+		options;
 	let finalHost =
 		service.host === process.env.HOST ? "localhost" : service.host;
 	if (process.env.NODE_ENV === "development") finalHost = "localhost";
@@ -157,17 +138,8 @@ function createCallPath(
 		(path[0] !== "/" ? "/" : "") +
 		path;
 
-	if (!isObjectEmpty(data) && method === "GET") {
-		const url = new URL(finalPath);
-		Object.keys(data).forEach((key) => {
-			if (isArray(data[key])) {
-				data[key].forEach((el: any) => {
-					url.searchParams.append(key, el);
-				});
-			} else url.searchParams.append(key, data[key]);
-		});
-		finalPath = url.toString();
-	}
+	// let urlParams = axios.getUri({url:'',params: {...options.data,...options.params}});
+
 	return finalPath;
 }
 
@@ -179,15 +151,14 @@ function createCallHeaders(options: msCallOptions | appCallOptions) {
 		...addRegisterApiKeyAuthHeader(),
 	});
 	if (req) {
-		if (req.headers["x-forwarded-for"])
-			newHeaders.set(
-				"x-forwarded-for",
-				req.headers["x-forwarded-for"] as string
-			);
-		else newHeaders.set("x-forwarded-for", "service");
-		if (req.headers["user-agent"])
-			newHeaders.set("user-agent", req.headers["user-agent"]);
-		else newHeaders.set("user-agent", "service");
+		newHeaders.set(
+			"x-forwarded-for",
+			req.headers.get("x-forwarded-for") || "service"
+		);
+		newHeaders.set(
+			"user-agent",
+			req.headers.get("user-agent") || "service"
+		);
 	}
 	return Object.fromEntries(newHeaders.entries());
 }
@@ -201,7 +172,7 @@ type remoteServiceCallInfo = {
 	timeout?: number;
 };
 async function makeCall(options: remoteServiceCallInfo) {
-	const {
+	let {
 		url,
 		method = "GET",
 		data = {}, // POST data
@@ -209,6 +180,14 @@ async function makeCall(options: remoteServiceCallInfo) {
 		headers = {},
 		timeout = 120000, // default wait in miliseconds = 2 minutes. (0 = no timeout)
 	}: remoteServiceCallInfo = options;
+
+	if (method === "GET") {
+		params = {
+			...data,
+			...params,
+		};
+		data = {};
+	}
 
 	let axiosResponse = await axios({
 		url,

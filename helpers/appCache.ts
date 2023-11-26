@@ -1,7 +1,9 @@
 import NodeCache from "node-cache";
-import isArray from "../functions/isArray.js";
 
-type namespace = string | Array<string | number> | undefined;
+type namespace =
+	| string
+	| Array<string | number | null | undefined | false>
+	| undefined;
 class AppCache {
 	static #_instance: AppCache;
 
@@ -49,12 +51,10 @@ class AppCache {
 	createKey(key: string, namespace?: namespace): string {
 		if (namespace === undefined) return key;
 		key = this.#namespaceSeparator + key;
-		let namespaceIsArray = isArray(namespace);
-		if (!namespaceIsArray && typeof namespace !== "string") return "";
-		if (namespaceIsArray)
-			namespace = (<Array<string | number>>namespace).join(
-				this.#namespaceSeparator
-			);
+		if (Array.isArray(namespace)) {
+			namespace = namespace.filter(Boolean);
+			namespace = namespace.join(this.#namespaceSeparator);
+		} else if (typeof namespace !== "string") return "";
 		return namespace + key;
 	}
 }

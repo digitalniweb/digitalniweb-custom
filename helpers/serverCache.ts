@@ -91,51 +91,51 @@ class ServerCache {
 		return ServerCache.#_instance;
 	}
 
-	get(key: RedisKey, callback?: Callback) {
+	async get(key: RedisKey, callback?: Callback) {
 		let args = [...arguments] as Parameters<RedisCommander["get"]>;
-		return this.#cache.get(...args);
+		return await this.#cache.get(...args);
 	}
 
-	set(key: RedisKey, value: RedisValue, callback?: Callback) {
+	async set(key: RedisKey, value: RedisValue, callback?: Callback) {
 		let args = [...arguments] as Parameters<RedisCommander["set"]>;
-		return this.#cache.set(...args);
+		return await this.#cache.set(...args);
 	}
 
-	mset(object: object, callback?: Callback) {
+	async mset(object: object, callback?: Callback) {
 		let args = [...arguments] as Parameters<RedisCommander["mset"]>;
-		return this.#cache.mset(...args);
+		return await this.#cache.mset(...args);
 	}
-	hset(
+	async hset(
 		key: RedisKey,
 		hashKey: string | number,
 		...fields: (RedisKey | number)[]
 	) {
 		let args = [...arguments] as Parameters<RedisCommander["hset"]>;
-		return this.#cache.hset(...args);
+		return await this.#cache.hset(...args);
 	}
-	hmset(key: RedisKey, object: object, callback?: Callback) {
+	async hmset(key: RedisKey, object: object, callback?: Callback) {
 		let args = [...arguments] as Parameters<RedisCommander["hmset"]>;
-		return this.#cache.hmset(...args);
+		return await this.#cache.hmset(...args);
 	}
 
-	hget(key: RedisKey, field: RedisKey, callback?: Callback) {
+	async hget(key: RedisKey, field: RedisKey, callback?: Callback) {
 		let args = [...arguments] as Parameters<RedisCommander["hget"]>;
-		return this.#cache.hget(...args);
+		return await this.#cache.hget(...args);
 	}
 
-	hmget(key: RedisKey, ...fields: RedisKey[]) {
+	async hmget(key: RedisKey, ...fields: RedisKey[]) {
 		let args = [...arguments] as Parameters<RedisCommander["hmget"]>;
-		return this.#cache.hmget(...args);
+		return await this.#cache.hmget(...args);
 	}
 
-	hgetall(key: RedisKey, callback?: Callback) {
+	async hgetall(key: RedisKey, callback?: Callback) {
 		let args = [...arguments] as Parameters<RedisCommander["hgetall"]>;
-		return this.#cache.hgetall(...args);
+		return await this.#cache.hgetall(...args);
 	}
 
-	hdel(key: RedisKey, ...fields: RedisKey[]) {
+	async hdel(key: RedisKey, ...fields: RedisKey[]) {
 		let args = [...arguments] as Parameters<RedisCommander["hdel"]>;
-		return this.#cache.hdel(...args);
+		return await this.#cache.hdel(...args);
 	}
 }
 

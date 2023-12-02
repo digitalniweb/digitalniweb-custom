@@ -30,14 +30,32 @@ class AppCache {
 		return this.#cache.get(finalKey);
 	}
 
-	set(key: string, value: any, namespace?: namespace) {
+	/**
+	 *
+	 * @param key
+	 * @param value
+	 * @param namespace
+	 * @param ttl time to live in seconds
+	 */
+	set(key: string, value: any, namespace?: namespace, ttl?: number) {
 		let finalKey = this.createKey(key, namespace);
 		this.#cache.set(finalKey, value);
+		if (ttl) this.#cache.ttl(finalKey, ttl);
 	}
 
 	has(key: string, namespace?: namespace): boolean {
 		let finalKey = this.createKey(key, namespace);
 		return this.#cache.has(finalKey);
+	}
+
+	/**
+	 *
+	 * @param key
+	 * @param ttl time to live. 0 deletes this key!
+	 * @returns
+	 */
+	ttl(key: string, ttl: number): boolean {
+		return this.#cache.ttl(key, ttl);
 	}
 
 	del(key: string, namespace?: namespace) {

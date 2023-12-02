@@ -13,10 +13,11 @@ import {
 } from "../../digitalniweb-types/models/globalData.js";
 import { log } from "./logger.js";
 import firstNonNullPromise from "../functions/firstNonNullPromise.js";
-import { msCallOptions } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
+import {
+	msCallOptions,
+	appCallOptions,
+} from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import ApiAppCache from "./apiAppCache.js";
-
-type appCallOptions = Omit<msCallOptions, "name"> & { name: string };
 
 export async function microserviceCall(
 	options: msCallOptions
@@ -34,9 +35,11 @@ export async function microserviceCall(
 		return false;
 	}
 
-	// !!! apiCache not complete (saving + timeouts? + false / null? + appCall no implemented) and weird - should it be here?
 	let apiCache = ApiAppCache.get(options);
 	if (apiCache !== undefined) return apiCache;
+
+	console.log("cache 1");
+	console.log(apiCache);
 
 	let headers = createCallHeaders(options);
 	let finalPath;
@@ -56,15 +59,54 @@ export async function microserviceCall(
 			return false;
 		}
 		finalPath = createCallPath(service, options);
-		return makeCall({
+		let response = await makeCall({
 			url: finalPath,
 			headers,
 			data: options.data,
 			method: options.method,
 			params: options.params,
 			timeout: options.timeout,
+			cacheKey: ApiAppCache.createKey(options),
 		});
+
+		console.log("cache 2");
+		console.log(response);
+		return response;
 	} else if (scope === "all") {
+		// !!! here implement appCache get - for single scope in all scope and save id for all scope (now it is partially only this)
+
+		// if there was cached particular api call then it would already be retrieved. But id shard of this call could still be cached and I wouldn't need to call all services to find the right one
+		let cachedId = ApiAppCache.get(options, "shardId");
+		if (cachedId) {
+			let ms = await getMicroservice({ name, id: cachedId });
+			if (ms) {
+				finalPath = createCallPath(ms, options);
+				let data = await makeCall({
+					url: finalPath,
+					headers,
+					data: options.data,
+					method: options.method,
+					params: options.params,
+					timeout: options.timeout,
+					cacheKey: ApiAppCache.createKey({
+						...options,
+					}),
+				});
+				if (data) {
+					ApiAppCache.resetShardIdTtl(
+						ApiAppCache.createKey(options, "shardId")
+					);
+					console.log("cachedId");
+					console.log(ApiAppCache.get(options));
+					console.log(ApiAppCache.get(options, "shardId"));
+
+					// I don't want to delete the cache because data can be really null not because of the shardId being wrong. If it is wrong though it will return wrong data if not handled somewhere (which is not implemented)
+				}
+
+				return data;
+			}
+		}
+
 		let services = await getAllServiceRegistryServices(name);
 		if (!services) {
 			log({
@@ -86,11 +128,16 @@ export async function microserviceCall(
 					method: options.method,
 					params: options.params,
 					timeout: options.timeout,
+					cacheKey: ApiAppCache.createKey({
+						...options,
+					}),
 				})
 			);
 		});
 		let response = await firstNonNullPromise(requestsToServices);
 
+		console.log("msCall firstNonNullPromise");
+		console.log(ApiAppCache.get(options));
 		return response;
 	}
 }
@@ -106,6 +153,9 @@ export async function appCall(
 ): Promise<AxiosResponse<any, any>["data"] | false> {
 	const { name } = options;
 
+	let apiCache = ApiAppCache.get(options);
+	if (apiCache !== undefined) return apiCache;
+
 	let service = await getApp(name);
 
 	if (!service) return false;
@@ -115,9 +165,10 @@ export async function appCall(
 		url: finalPath,
 		headers,
 		data: options.data,
-		method: options.method,
 		params: options.params,
+		method: options.method,
 		timeout: options.timeout,
+		cacheKey: ApiAppCache.createKey(options),
 	});
 }
 
@@ -170,6 +221,7 @@ type remoteServiceCallInfo = {
 	params?: { [key: string]: any };
 	headers: { [key: string]: string };
 	timeout?: number;
+	cacheKey?: string;
 };
 async function makeCall(options: remoteServiceCallInfo) {
 	let {
@@ -178,7 +230,8 @@ async function makeCall(options: remoteServiceCallInfo) {
 		data = {}, // POST data
 		params = {}, // GET parameters (query)
 		headers = {},
-		timeout = 120000, // default wait in miliseconds = 2 minutes. (0 = no timeout)
+		timeout = 120000, // default maximum waiting time in miliseconds = 2 minutes. (0 = no timeout)
+		cacheKey,
 	}: remoteServiceCallInfo = options;
 
 	if (method === "GET") {
@@ -199,5 +252,8 @@ async function makeCall(options: remoteServiceCallInfo) {
 	});
 
 	// axiosResponse throws error on axios error, if data is null on remote server the null is returned as empty string
-	return axiosResponse.data || null;
+	let responseData = axiosResponse.data || null;
+	if (cacheKey) ApiAppCache.set(cacheKey, responseData);
+
+	return responseData;
 }

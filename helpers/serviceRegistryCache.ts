@@ -34,7 +34,7 @@ import { serviceRegistryServices } from "../../digitalniweb-types/custom/helpers
 
 import { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
 import { log } from "./logger.js";
-import { customLogObject } from "~/digitalniweb-types/customHelpers/logger.js";
+import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 
 type getServiceOptions = {
 	name: microservices;

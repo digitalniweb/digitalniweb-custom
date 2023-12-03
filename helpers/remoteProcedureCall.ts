@@ -24,6 +24,7 @@ export async function microserviceCall(
 ): Promise<AxiosResponse<any, any>["data"]> {
 	const { name, id, scope = "single" }: msCallOptions = options;
 	if (!microserviceExists(name)) return false;
+	if (!options.method) options.method = "GET";
 
 	if (name === process.env.MICROSERVICE_NAME) {
 		log({
@@ -36,10 +37,7 @@ export async function microserviceCall(
 	}
 
 	let apiCache = ApiAppCache.get(options);
-	if (apiCache !== undefined) return apiCache;
-
-	console.log("cache 1");
-	console.log(apiCache);
+	if (apiCache) return apiCache;
 
 	let headers = createCallHeaders(options);
 	let finalPath;
@@ -59,6 +57,7 @@ export async function microserviceCall(
 			return false;
 		}
 		finalPath = createCallPath(service, options);
+
 		let response = await makeCall({
 			url: finalPath,
 			headers,
@@ -69,8 +68,6 @@ export async function microserviceCall(
 			cacheKey: ApiAppCache.createKey(options),
 		});
 
-		console.log("cache 2");
-		console.log(response);
 		return response;
 	} else if (scope === "all") {
 		// !!! here implement appCache get - for single scope in all scope and save id for all scope (now it is partially only this)
@@ -96,9 +93,6 @@ export async function microserviceCall(
 					ApiAppCache.resetShardIdTtl(
 						ApiAppCache.createKey(options, "shardId")
 					);
-					console.log("cachedId");
-					console.log(ApiAppCache.get(options));
-					console.log(ApiAppCache.get(options, "shardId"));
 
 					// I don't want to delete the cache because data can be really null not because of the shardId being wrong. If it is wrong though it will return wrong data if not handled somewhere (which is not implemented)
 				}
@@ -136,8 +130,6 @@ export async function microserviceCall(
 		});
 		let response = await firstNonNullPromise(requestsToServices);
 
-		console.log("msCall firstNonNullPromise");
-		console.log(ApiAppCache.get(options));
 		return response;
 	}
 }
@@ -152,9 +144,10 @@ export async function appCall(
 	options: appCallOptions
 ): Promise<AxiosResponse<any, any>["data"] | false> {
 	const { name } = options;
+	if (!options.method) options.method = "GET";
 
 	let apiCache = ApiAppCache.get(options);
-	if (apiCache !== undefined) return apiCache;
+	if (apiCache) return apiCache;
 
 	let service = await getApp(name);
 

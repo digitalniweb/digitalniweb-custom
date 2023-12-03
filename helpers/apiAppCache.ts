@@ -40,6 +40,7 @@ export class ApiAppCache {
 		if (options.protocol && !["http", "https"].includes(options.protocol))
 			return "";
 		let key = this.createKey(options);
+
 		if (!key) return false;
 		if (type === "data") return appCache.get(key);
 		else if (type === "shardId") {
@@ -94,7 +95,7 @@ export class ApiAppCache {
 			// get shardId
 			otherKeys.push("shardId");
 		} else return "";
-		otherKeys.push(
+		otherKeys.unshift(
 			options.name,
 			options.protocol,
 			options.path,

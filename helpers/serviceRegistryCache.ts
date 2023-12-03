@@ -297,13 +297,6 @@ export async function registerCurrentApp() {
 	});
 
 	if (missingServiceInfo.length !== 0) {
-		/* log({
-			message: `Couldn't register service ${
-				process.env.APP_NAME
-			}. ${missingServiceInfo.join(", ")} ${
-				missingServiceInfo.length === 1 ? "is" : "are"
-			} missing in .env file.`,
-		}); */
 		throw new Error(
 			`Couldn't register service ${
 				process.env.APP_NAME
@@ -329,7 +322,8 @@ export async function registerCurrentApp() {
 		data: service,
 		method: "POST",
 	});
-	if (!app) throw new Error("Couldn't register app.");
+
+	if (!app) throw { message: "Couldn't register app." };
 
 	process.env.APP_ID = app.id;
 

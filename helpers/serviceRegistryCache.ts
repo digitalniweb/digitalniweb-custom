@@ -323,7 +323,12 @@ export async function registerCurrentApp() {
 		method: "POST",
 	});
 
-	if (!app) throw { message: "Couldn't register app." };
+	if (!app)
+		throw {
+			type: "functions",
+			status: "error",
+			error: "Couldn't register app.",
+		} as customLogObject;
 
 	process.env.APP_ID = app.id;
 

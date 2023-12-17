@@ -214,7 +214,9 @@ const log = function (
 
 	// anonymize passwords in logs before showing them or saving them into database
 	if ((customLogObject?.error as any)?.config?.params?.password)
-		(customLogObject?.error as any).config.params.password = "ANONYMIZED";
+		(customLogObject.error as any).config.params.password = "ANONYMIZED";
+	if (customLogObject?.data?.password)
+		customLogObject.data.password = "ANONYMIZED";
 
 	let logValue = (
 		logFunctionsMap[type] as {

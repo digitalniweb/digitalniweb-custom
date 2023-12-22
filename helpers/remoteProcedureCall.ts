@@ -11,29 +11,39 @@ import {
 	ServiceRegistry,
 	App,
 } from "../../digitalniweb-types/models/globalData.js";
-import { log } from "./logger.js";
-import firstNonNullPromise from "../functions/firstNonNullPromise.js";
+import firstNonNullRemoteCall from "../functions/firstNonNullRemoteCall.js";
 import {
 	msCallOptions,
 	appCallOptions,
+	remoteCallResponse,
 } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import ApiAppCache from "./apiAppCache.js";
+import { customLogObject } from "~/digitalniweb-types/customHelpers/logger.js";
 
+/**
+ *
+ * @param options
+ * @returns `remoteCallResponse` this is practically Axios call. Returns Axios response. Might return object (which parameters need to be the same as axios') or throw an error as axios would!
+ */
 export async function microserviceCall(
 	options: msCallOptions
-): Promise<AxiosResponse<any, any>["data"]> {
+): Promise<remoteCallResponse> {
 	const { name, id, scope = "single" }: msCallOptions = options;
-	if (!microserviceExists(name)) return false;
+	if (!microserviceExists(name))
+		throw {
+			type: "functions",
+			message: "Microservice is doesn't exist.",
+			status: "warning",
+		} as customLogObject;
 	if (!options.method) options.method = "GET";
 
 	if (name === process.env.MICROSERVICE_NAME) {
-		log({
+		throw {
 			type: "consoleLog",
 			message:
 				"You don't need to call 'microserviceCall' for same microservice.",
 			status: "info",
-		});
-		return false;
+		} as customLogObject;
 	}
 
 	let apiCache = ApiAppCache.get(options);
@@ -48,13 +58,12 @@ export async function microserviceCall(
 		});
 
 		if (!service) {
-			log({
+			throw {
 				type: "system",
 				message:
 					"Microservice is undefined, wasn't found in cache or in serviceRegistry.",
 				status: "warning",
-			});
-			return false;
+			} as customLogObject;
 		}
 		finalPath = createCallPath(service, options);
 
@@ -103,15 +112,13 @@ export async function microserviceCall(
 
 		let services = await getAllServiceRegistryServices(name);
 		if (!services) {
-			log({
+			throw {
 				type: "system",
-				message:
-					"Microservices are undefined, weren't found in cache or in serviceRegistry.",
+				message: `Scope in 'microserviceCall' is '${scope}' which is not allowed value.`,
 				status: "warning",
-			});
-			return false;
+			} as customLogObject;
 		}
-		let requestsToServices: Promise<unknown>[] = [];
+		let requestsToServices: Promise<remoteCallResponse>[] = [];
 		services.forEach((service) => {
 			finalPath = createCallPath(service, options);
 			requestsToServices.push(
@@ -128,10 +135,16 @@ export async function microserviceCall(
 				})
 			);
 		});
-		let response = await firstNonNullPromise(requestsToServices);
+		let response = await firstNonNullRemoteCall(requestsToServices);
 
 		return response;
-	}
+	} else
+		throw {
+			type: "consoleLog",
+			message:
+				"You don't need to call 'microserviceCall' for same microservice.",
+			status: "info",
+		} as customLogObject;
 }
 
 function addRegisterApiKeyAuthHeader() {
@@ -142,7 +155,7 @@ function addRegisterApiKeyAuthHeader() {
 
 export async function appCall(
 	options: appCallOptions
-): Promise<AxiosResponse<any, any>["data"] | false> {
+): Promise<remoteCallResponse> {
 	const { name } = options;
 	if (!options.method) options.method = "GET";
 
@@ -151,7 +164,12 @@ export async function appCall(
 
 	let service = await getApp(name);
 
-	if (!service) return false;
+	if (!service)
+		throw {
+			type: "functions",
+			message: "App doesn't exist.",
+			status: "warning",
+		} as customLogObject;
 	let finalPath = createCallPath(service, options);
 	let headers = createCallHeaders(options);
 	return makeCall({
@@ -216,7 +234,14 @@ type remoteServiceCallInfo = {
 	timeout?: number;
 	cacheKey?: string;
 };
-async function makeCall(options: remoteServiceCallInfo) {
+
+/**
+ * returns Axios response data param
+ * @param options
+ */
+async function makeCall(
+	options: remoteServiceCallInfo
+): Promise<remoteCallResponse> {
 	let {
 		url,
 		method = "GET",
@@ -244,9 +269,8 @@ async function makeCall(options: remoteServiceCallInfo) {
 		headers,
 	});
 
-	// axiosResponse throws error on axios error, if data is null on remote server the null is returned as empty string
-	let responseData = axiosResponse.data || null;
-	if (cacheKey) ApiAppCache.set(cacheKey, responseData);
+	if (axiosResponse.status < 400 && cacheKey)
+		ApiAppCache.set(cacheKey, axiosResponse.data);
 
-	return responseData;
+	return axiosResponse;
 }

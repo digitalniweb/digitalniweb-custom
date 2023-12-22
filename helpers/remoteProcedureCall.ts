@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 
 import { HTTPMethods } from "../../digitalniweb-types/httpMethods.js";
 import {
@@ -98,7 +98,7 @@ export async function microserviceCall(
 						...options,
 					}),
 				});
-				if (data) {
+				if (data.data) {
 					ApiAppCache.resetShardIdTtl(
 						ApiAppCache.createKey(options, "shardId")
 					);

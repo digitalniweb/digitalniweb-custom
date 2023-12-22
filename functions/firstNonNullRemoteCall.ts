@@ -1,6 +1,5 @@
 import { remoteCallResponse } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import { log } from "../helpers/logger.js";
-import { AxiosResponse } from "axios";
 import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 
 /**
@@ -14,7 +13,7 @@ import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.j
 export default function firstNonNullRemoteCall(
 	promises: Promise<remoteCallResponse>[]
 ): Promise<remoteCallResponse> {
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 		let count = 0;
 		let nonNullSuccess = false; // non null/false/empty
 		let errorCount = 0;
@@ -35,7 +34,9 @@ export default function firstNonNullRemoteCall(
 				.finally(() => {
 					count++;
 					if (count === promises.length) {
-						resolve(allPromisesEnded(nonNullSuccess, errorCount));
+						let end = allPromisesEnded(nonNullSuccess, errorCount);
+						if (end.error) reject(end.data);
+						else resolve(promiseSuccess(end.data));
 					}
 				});
 		});
@@ -54,19 +55,24 @@ function rejectedPromise(error: any) {
 function allPromisesEnded(
 	nonNullSuccess: boolean,
 	errorHappened: number
-): remoteCallResponse {
+):
+	| { error: true; data: customLogObject }
+	| { error: false; data: remoteCallResponse } {
 	if (!nonNullSuccess && errorHappened) {
-		throw {
-			type: "functions",
-			status: "error",
-			message: `Nothing was found when waiting for promises in 'firstNonNullRemoteCall' but error happened in ${errorHappened} promise${
-				errorHappened > 1 ? "s" : ""
-			}! More info about ${
-				errorHappened > 1 ? "the error" : "these errors"
-			} should be logged earlier via 'rejectedPromise'.`,
-		} as customLogObject;
+		return {
+			error: true,
+			data: {
+				type: "functions",
+				status: "error",
+				message: `Nothing was found when waiting for promises in 'firstNonNullRemoteCall' but error happened in ${errorHappened} promise${
+					errorHappened > 1 ? "s" : ""
+				}! More info about ${
+					errorHappened > 1 ? "the error" : "these errors"
+				} should be logged earlier via 'rejectedPromise'.`,
+			},
+		};
 	}
-	return { data: null, status: 200 };
+	return { error: false, data: { data: null, status: 200 } };
 }
 function promiseSuccess(data: remoteCallResponse) {
 	return data;

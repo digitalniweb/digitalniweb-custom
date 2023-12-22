@@ -74,6 +74,11 @@ const logAuthorization: logFunction = (
 const logAuthentication: logFunction = (...args) => {
 	// !!! this needs to be changed, this is wrong
 	consoleLogDev(...args);
+	let responseObject: responseLogObject = {
+		code: args[0].code || 403,
+		message: args[0].message || "Authentication failed",
+	};
+	return responseObject;
 };
 const logDatabaseMessages: logFunction = (...args) => {
 	// !!! this needs to be changed, this is wrong
@@ -217,6 +222,7 @@ const log = function (
 		(customLogObject.error as any).config.params.password = "ANONYMIZED";
 	if (customLogObject?.data?.password)
 		customLogObject.data.password = "ANONYMIZED";
+	if (req?.body?.password) req.body.password = "ANONYMIZED";
 
 	let logValue = (
 		logFunctionsMap[type] as {

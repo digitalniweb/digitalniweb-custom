@@ -18,7 +18,7 @@ import {
 	remoteCallResponse,
 } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import ApiAppCache from "./apiAppCache.js";
-import { customLogObject } from "~/digitalniweb-types/customHelpers/logger.js";
+import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 
 /**
  *

@@ -1,7 +1,7 @@
-import { remoteCallResponse } from "~/digitalniweb-types/custom/helpers/remoteProcedureCall.js";
+import { remoteCallResponse } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import { log } from "../helpers/logger.js";
 import { AxiosResponse } from "axios";
-import { customLogObject } from "~/digitalniweb-types/customHelpers/logger.js";
+import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 
 /**
  * First `non null/false/empty` promise result.

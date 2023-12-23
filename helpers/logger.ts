@@ -29,14 +29,17 @@ function getHttpErrorLogStatus(code: number) {
 
 const consoleLogDev: logFunction = (customLogObject, req): void => {
 	if (process.env.NODE_ENV === "production") return;
+
 	let logObject = customLogObject;
 	if (req) {
 		logObject.req = {
 			method: req.method,
 			originalUrl: req.originalUrl,
 			path: req.path,
+			query: req.query,
+			params: req.params,
+			body: req.body,
 		};
-		logObject.data = req.body;
 	}
 	if (logObject.code && !logObject.status)
 		logObject.status = getHttpErrorLogStatus(logObject.code);
@@ -78,6 +81,8 @@ const logAuthentication: logFunction = (...args) => {
 		code: args[0].code || 403,
 		message: args[0].message || "Authentication failed",
 	};
+
+	if (args[0]?.data) responseObject.error = args[0]?.data;
 	return responseObject;
 };
 const logDatabaseMessages: logFunction = (...args) => {
@@ -220,8 +225,8 @@ const log = function (
 	// anonymize passwords in logs before showing them or saving them into database
 	if ((customLogObject?.error as any)?.config?.params?.password)
 		(customLogObject.error as any).config.params.password = "ANONYMIZED";
-	if (customLogObject?.data?.password)
-		customLogObject.data.password = "ANONYMIZED";
+	if (customLogObject?.req?.body?.password)
+		customLogObject.req.body.password = "ANONYMIZED";
 	if (req?.body?.password) req.body.password = "ANONYMIZED";
 
 	let logValue = (

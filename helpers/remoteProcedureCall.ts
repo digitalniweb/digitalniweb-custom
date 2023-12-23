@@ -29,6 +29,7 @@ export async function microserviceCall(
 	options: msCallOptions
 ): Promise<remoteCallResponse> {
 	const { name, id, scope = "single" }: msCallOptions = options;
+
 	if (!microserviceExists(name))
 		throw {
 			type: "functions",
@@ -269,8 +270,8 @@ async function makeCall(
 		headers,
 	});
 
-	if (axiosResponse.status < 400 && cacheKey)
-		ApiAppCache.set(cacheKey, axiosResponse.data);
+	if (method === "GET" && axiosResponse.status < 400 && cacheKey)
+		ApiAppCache.set(cacheKey, { data: axiosResponse.data, status: 304 });
 
 	return axiosResponse;
 }

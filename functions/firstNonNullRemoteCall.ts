@@ -8,26 +8,35 @@ import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.j
  * If response data have (http) `status` parameter then only `<=400` are considered `non null/false/empty`.
  *
  * @param promises Promise<remoteCallResponse>[]
+ * @param allow400http boolean - Axios throws error on 4xx (and 5xx) http statuses. If this is true then resolve this instead of reject.
  * @returns
  */
 export default function firstNonNullRemoteCall(
-	promises: Promise<remoteCallResponse>[]
+	promises: Promise<remoteCallResponse>[],
+	allow400http: boolean = true
 ): Promise<remoteCallResponse> {
 	return new Promise((resolve, reject) => {
 		let count = 0;
 		let nonNullSuccess = false; // non null/false/empty
 		let errorCount = 0;
+		let notOkStatus = 400;
+		if (allow400http) notOkStatus = 500;
 		promises.forEach((promise) => {
 			promise
 				.then((data) => {
 					if (data && !nonNullSuccess) {
-						if (data.status >= 400) return;
+						if (data.status >= notOkStatus) return;
 
 						nonNullSuccess = true;
 						resolve(promiseSuccess(data));
 					}
 				})
 				.catch((e) => {
+					if (e?.response?.status < notOkStatus) {
+						nonNullSuccess = true;
+						resolve(promiseSuccess(e.response));
+						return;
+					}
 					errorCount++;
 					rejectedPromise(e);
 				})

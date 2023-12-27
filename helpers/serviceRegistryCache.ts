@@ -24,7 +24,7 @@ import { microserviceCall } from "./remoteProcedureCall.js";
 
 import Publisher from "./../../digitalniweb-custom/helpers/publisherService.js";
 import Subscriber from "./../../digitalniweb-custom/helpers/subscriberService.js";
-import sleep from "../functions/sleep.js";
+// import sleep from "../functions/sleep.js";
 import {
 	getMainServiceRegistry,
 	getServiceRegistryInfo,
@@ -476,7 +476,7 @@ function requestServiceRegistryInfoFromRedisEvent(
 			"serviceRegistry-requestInformation",
 			uniqueName
 		);
-		await sleep(3000);
+		// await sleep(3000);
 		item.off(event, listener);
 		reject("Timed out request service registry info from Redis event");
 	});

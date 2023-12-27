@@ -115,7 +115,7 @@ export async function microserviceCall(
 		if (!services) {
 			throw {
 				type: "system",
-				message: `Scope in 'microserviceCall' is '${scope}' which is not allowed value.`,
+				message: `Couldn't get registry services for '${name}' service.`,
 				status: "warning",
 			} as customLogObject;
 		}

@@ -10,7 +10,7 @@ export async function getGlobalRoles() {
 		});
 		return roles;
 	} catch (error: any) {
-		log({ type: "functions", error });
+		log({ type: "functions", error, status: "error" });
 		return false;
 	}
 }

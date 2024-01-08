@@ -1,4 +1,4 @@
-import { Request } from "express";
+import { Request, Response } from "express";
 import Publisher from "./publisherService.js";
 import {
 	commonError,
@@ -61,11 +61,15 @@ const consoleLogProduction: logFunction = (...args): void => {
 
 const logAuthorization: logFunction = (
 	customLogObject,
-	req
+	req,
+	res
 ): responseLogObject => {
 	// !!! need to add all info + userId and path info and method and send it to logs_ms
 	let logObject = {
-		user: { id: req?.userVerified?.id, usersMsId: req?.userVerified?.msId },
+		user: {
+			id: res?.locals?.userVerified?.id,
+			usersMsId: res?.locals?.userVerified?.msId,
+		},
 	};
 	let responseObject: responseLogObject = {
 		code: 403,
@@ -216,7 +220,8 @@ type logFunction = typeof log;
  */
 const log = function (
 	customLogObject: customLogObject,
-	req?: Request
+	req?: Request,
+	res?: Response
 ): responseLogObject | void {
 	const { type } = customLogObject;
 	if (!type) return;

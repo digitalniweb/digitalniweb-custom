@@ -1,4 +1,4 @@
-import { pickUserLoginResponse } from "~/digitalniweb-types";
+import { pickUserLoginResponse } from "../../digitalniweb-types";
 
 // login response parameters filter
 export const userLoginResponseParams: (keyof pickUserLoginResponse)[] = [

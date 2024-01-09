@@ -1,9 +1,24 @@
-// these are ommited parameters of:
-// import type { User } from "../../digitalniweb-types/models/users";
-// but TypeScript currently (5.3) doesn’t support `as const` for arrays with specified types. That's why I can't infer types of User here
-export const omittedLoggedUserParams = [
-	"password",
-	"refreshTokenSalt",
-	"updatedAt",
-	"deletedAt",
+import { pickUserLoginResponse } from "~/digitalniweb-types";
+
+// login response parameters filter
+export const userLoginResponseParams: (keyof pickUserLoginResponse)[] = [
+	"uuid",
+	"id",
+	"nickname",
+	"email",
+	"roleId",
+	"credit",
+	"Tenant",
+	"UserPrivileges",
+	"websiteId",
+	"websitesMsId",
 ] as const;
+
+// autenticated user data in ms: res.locals.userVerified
+export const userVerifiedParams = [] as const;
+
+// ajwt
+export const userJWTParams = [] as const;
+
+// app store
+export const userStoreParams = [] as const;

@@ -16,6 +16,7 @@ import {
 	msCallOptions,
 	appCallOptions,
 	remoteCallResponse,
+	cachedResponseData,
 } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import ApiAppCache from "./apiAppCache.js";
 import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
@@ -270,8 +271,21 @@ async function makeCall(
 		headers,
 	});
 
-	if (method === "GET" && axiosResponse.status < 400 && cacheKey)
-		ApiAppCache.set(cacheKey, { data: axiosResponse.data, status: 304 });
+	if (method === "GET" && axiosResponse.status < 400 && cacheKey) {
+		let cacheData = {
+			data: axiosResponse.data,
+			status: 304,
+		} as cachedResponseData;
+		if (axiosResponse?.headers?.["x-ms-id"]) {
+			if (!cacheData.headers) cacheData.headers = {};
+			cacheData.headers["x-ms-id"] = axiosResponse?.headers?.["x-ms-id"];
+		} else if (axiosResponse?.headers?.["x-app-id"]) {
+			if (!cacheData.headers) cacheData.headers = {};
+			cacheData.headers["x-app-id"] =
+				axiosResponse?.headers?.["x-app-id"];
+		}
+		ApiAppCache.set(cacheKey, cacheData);
+	}
 
 	return axiosResponse;
 }

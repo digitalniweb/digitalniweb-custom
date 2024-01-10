@@ -1,4 +1,9 @@
-import { pickUserLoginResponse } from "../../digitalniweb-types";
+import {
+	pickUserLoginResponse,
+	userJWT,
+	userStore,
+	userVerified,
+} from "../../digitalniweb-types/users";
 
 // login response parameters filter
 export const userLoginResponseParams: (keyof pickUserLoginResponse)[] = [
@@ -15,10 +20,42 @@ export const userLoginResponseParams: (keyof pickUserLoginResponse)[] = [
 ] as const;
 
 // autenticated user data in ms: res.locals.userVerified
-export const userVerifiedParams = [] as const;
+export const userVerifiedParams: (keyof userVerified)[] = [
+	"UserPrivileges",
+	"credit",
+	"id",
+	"role",
+	"usersMsId",
+	"uuid",
+	"websiteId",
+	"websitesMsId",
+] as const;
 
 // ajwt
-export const userJWTParams = [] as const;
+export const userJWTParams: (keyof userJWT)[] = [
+	"UserPrivileges",
+	"credit",
+	"email",
+	"id",
+	"nickname",
+	"role",
+	"usersMsId",
+	"uuid",
+	"websiteId",
+	"websitesMsId",
+] as const;
 
 // app store
-export const userStoreParams = [] as const;
+export const userStoreParams: (keyof userStore)[] = [
+	"Tenant",
+	"UserPrivileges",
+	"credit",
+	"email",
+	"id",
+	"nickname",
+	"role",
+	"usersMsId",
+	"uuid",
+	"websiteId",
+	"websitesMsId",
+] as const;

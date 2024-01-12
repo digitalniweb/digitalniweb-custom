@@ -1,6 +1,7 @@
 import {
 	pickUserLoginResponse,
 	userJWT,
+	userRefreshToken,
 	userStore,
 	userVerified,
 } from "../../digitalniweb-types/users";
@@ -31,7 +32,7 @@ export const userVerifiedParams: (keyof userVerified)[] = [
 	"websitesMsId",
 ] as const;
 
-// ajwt
+// jwt / access_token
 export const userJWTParams: (keyof userJWT)[] = [
 	"UserPrivileges",
 	"credit",
@@ -43,6 +44,13 @@ export const userJWTParams: (keyof userJWT)[] = [
 	"uuid",
 	"websiteId",
 	"websitesMsId",
+] as const;
+
+// refresh_token
+export const userRefreshTokenParams: (keyof userRefreshToken)[] = [
+	"id",
+	"usersMsId",
+	"uuid",
 ] as const;
 
 // app store

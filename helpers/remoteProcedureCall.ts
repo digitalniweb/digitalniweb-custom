@@ -20,15 +20,16 @@ import {
 } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import ApiAppCache from "./apiAppCache.js";
 import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
+import { InferAttributes } from "sequelize";
 
 /**
  *
  * @param options
  * @returns `remoteCallResponse` this is practically Axios call. Returns Axios response. Might return object (which parameters need to be the same as axios') or throw an error as axios would!
  */
-export async function microserviceCall(
+export async function microserviceCall<T>(
 	options: msCallOptions
-): Promise<remoteCallResponse> {
+): Promise<remoteCallResponse<T>> {
 	const { name, id, scope = "single" }: msCallOptions = options;
 
 	if (!microserviceExists(name))
@@ -69,7 +70,7 @@ export async function microserviceCall(
 		}
 		finalPath = createCallPath(service, options);
 
-		let response = await makeCall({
+		let response = await makeCall<T>({
 			url: finalPath,
 			headers,
 			data: options.data,
@@ -89,7 +90,7 @@ export async function microserviceCall(
 			let ms = await getMicroservice({ name, id: cachedId });
 			if (ms) {
 				finalPath = createCallPath(ms, options);
-				let data = await makeCall({
+				let data = await makeCall<T>({
 					url: finalPath,
 					headers,
 					data: options.data,
@@ -120,11 +121,11 @@ export async function microserviceCall(
 				status: "warning",
 			} as customLogObject;
 		}
-		let requestsToServices: Promise<remoteCallResponse>[] = [];
+		let requestsToServices: Promise<remoteCallResponse<T>>[] = [];
 		services.forEach((service) => {
 			finalPath = createCallPath(service, options);
 			requestsToServices.push(
-				makeCall({
+				makeCall<T>({
 					url: finalPath,
 					headers,
 					data: options.data,
@@ -155,9 +156,9 @@ function addRegisterApiKeyAuthHeader() {
 	};
 }
 
-export async function appCall(
+export async function appCall<T>(
 	options: appCallOptions
-): Promise<remoteCallResponse> {
+): Promise<remoteCallResponse<T>> {
 	const { name } = options;
 	if (!options.method) options.method = "GET";
 
@@ -174,7 +175,7 @@ export async function appCall(
 		} as customLogObject;
 	let finalPath = createCallPath(service, options);
 	let headers = createCallHeaders(options);
-	return makeCall({
+	return makeCall<T>({
 		url: finalPath,
 		headers,
 		data: options.data,
@@ -186,7 +187,7 @@ export async function appCall(
 }
 
 function createCallPath(
-	service: ServiceRegistry | App,
+	service: InferAttributes<ServiceRegistry> | InferAttributes<App>,
 	options: msCallOptions | appCallOptions
 ) {
 	const { protocol = "https", path }: msCallOptions | appCallOptions =
@@ -241,9 +242,9 @@ type remoteServiceCallInfo = {
  * returns Axios response data param
  * @param options
  */
-async function makeCall(
+async function makeCall<T>(
 	options: remoteServiceCallInfo
-): Promise<remoteCallResponse> {
+): Promise<remoteCallResponse<T>> {
 	let {
 		url,
 		method = "GET",
@@ -275,7 +276,7 @@ async function makeCall(
 		let cacheData = {
 			data: axiosResponse.data,
 			status: 304,
-		} as cachedResponseData;
+		} as cachedResponseData<T>;
 		if (axiosResponse?.headers?.["x-ms-id"]) {
 			if (!cacheData.headers) cacheData.headers = {};
 			cacheData.headers["x-ms-id"] = axiosResponse?.headers?.["x-ms-id"];

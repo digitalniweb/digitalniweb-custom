@@ -35,6 +35,7 @@ import { serviceRegistryServices } from "../../digitalniweb-types/custom/helpers
 import { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
 import { log } from "./logger.js";
 import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
+import { InferAttributes } from "sequelize";
 
 type getServiceOptions = {
 	name: microservices;
@@ -43,7 +44,7 @@ type getServiceOptions = {
 
 type setAppOptions = {
 	name: string;
-	info: AppType;
+	info: AppType | InferAttributes<AppType>;
 };
 
 export function setMainIdService(options: {
@@ -83,7 +84,9 @@ export function setApp(options: setAppOptions) {
  * @param options
  * @returns
  */
-export async function getApp(name: string): Promise<AppType | undefined> {
+export async function getApp(
+	name: string
+): Promise<InferAttributes<AppType> | undefined> {
 	if (!name) return undefined;
 
 	let serviceRegistryAppCache: serviceRegistryApp | undefined =
@@ -95,7 +98,9 @@ export async function getApp(name: string): Promise<AppType | undefined> {
 			if ((await requestServiceRegistryInfo()) === false)
 				return undefined;
 		}
-		let { data: appData }: { data: AppType } = await microserviceCall({
+		let { data: appData } = await microserviceCall<
+			InferAttributes<AppType>
+		>({
 			name: "globalData",
 			path: `/api/serviceregistry/app?name=${name}`,
 		});
@@ -105,14 +110,18 @@ export async function getApp(name: string): Promise<AppType | undefined> {
 		return app;
 	}
 
-	let app = serviceRegistryAppCache[name] as AppType | undefined;
+	let app = serviceRegistryAppCache[name] as
+		| InferAttributes<AppType>
+		| undefined;
 	if (app === undefined) {
-		let { data: appData }: { data: AppType } = await microserviceCall({
+		let { data: appData } = await microserviceCall<
+			InferAttributes<AppType>
+		>({
 			name: "globalData",
 			path: `/api/serviceregistry/app?name=${name}`,
 		});
+		if (!appData) return undefined;
 		app = appData;
-		if (!app) return undefined;
 		setApp({ name, info: app });
 	}
 	return app;
@@ -158,12 +167,13 @@ export async function getServiceServicesByName(
 		microserviceInfo = await getServiceRegistryServices(name);
 	} else {
 		let path = `/api/serviceregistry/${name}`;
-		let { data: microserviceInfoData }: { data: serviceRegistryServices } =
-			await microserviceCall({
+		let { data: microserviceInfoData } =
+			await microserviceCall<serviceRegistryServices>({
 				name: "globalData",
 				path,
 			});
-		microserviceInfo = microserviceInfoData;
+		if (microserviceInfoData !== null)
+			microserviceInfo = microserviceInfoData;
 	}
 	return microserviceInfo;
 }
@@ -320,7 +330,7 @@ export async function registerCurrentApp() {
 		language: serviceInfo["DEFAULT_LANGUAGE"],
 	};
 
-	let { data: appData }: { data: App } = await microserviceCall({
+	let { data: appData } = await microserviceCall<InferAttributes<App>>({
 		name: "globalData",
 		path: "/api/serviceregistry/app/register",
 		data: service,
@@ -388,13 +398,14 @@ export async function registerCurrentMicroservice() {
 		apiKey: serviceInfo["MICROSERVICE_API_KEY"],
 	};
 
-	let { data: currentServiceData }: { data: ServiceRegistry } =
-		await microserviceCall({
-			name: "globalData",
-			path: "/api/serviceregistry/register",
-			data: service,
-			method: "POST",
-		});
+	let { data: currentServiceData } = await microserviceCall<
+		InferAttributes<ServiceRegistry>
+	>({
+		name: "globalData",
+		path: "/api/serviceregistry/register",
+		data: service,
+		method: "POST",
+	});
 	let currentService = currentServiceData;
 	if (currentService) process.env.MICROSERVICE_ID = currentService.id;
 }
@@ -495,12 +506,11 @@ export async function getMainServiceRegistryId(
 		if (process.env.MICROSERVICE_NAME === "globalData") {
 			ms = await getMainServiceRegistry(microservice);
 		} else {
-			let { data: msData }: { data: MicroserviceType } =
-				await microserviceCall({
-					name: "globalData",
-					path: `/api/serviceregistry/getmainbyname/${microservice}`,
-					method: "GET",
-				});
+			let { data: msData } = await microserviceCall<MicroserviceType>({
+				name: "globalData",
+				path: `/api/serviceregistry/getmainbyname/${microservice}`,
+				method: "GET",
+			});
 			ms = msData;
 		}
 		if (ms === null || !ms.mainServiceRegistryId) return null;

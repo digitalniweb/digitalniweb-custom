@@ -11,10 +11,10 @@ import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.j
  * @param allow400http boolean - Axios throws error on 4xx (and 5xx) http statuses. If this is true then resolve this instead of reject.
  * @returns
  */
-export default function firstNonNullRemoteCall(
-	promises: Promise<remoteCallResponse>[],
+export default function firstNonNullRemoteCall<T>(
+	promises: Promise<remoteCallResponse<T>>[],
 	allow400http: boolean = true
-): Promise<remoteCallResponse> {
+): Promise<remoteCallResponse<T>> {
 	return new Promise((resolve, reject) => {
 		let count = 0;
 		let nonNullSuccess = false; // non null/false/empty
@@ -43,9 +43,12 @@ export default function firstNonNullRemoteCall(
 				.finally(() => {
 					count++;
 					if (count === promises.length) {
-						let end = allPromisesEnded(nonNullSuccess, errorCount);
+						let end = allPromisesEnded<T>(
+							nonNullSuccess,
+							errorCount
+						);
 						if (end.error) reject(end.data);
-						else resolve(promiseSuccess(end.data));
+						else resolve(promiseSuccess<T>(end.data));
 					}
 				});
 		});
@@ -61,12 +64,13 @@ function rejectedPromise(error: any) {
 		error,
 	});
 }
-function allPromisesEnded(
+function allPromisesEnded<T>(
 	nonNullSuccess: boolean,
 	errorHappened: number
 ):
 	| { error: true; data: customLogObject }
-	| { error: false; data: remoteCallResponse } {
+	| { error: false; data: remoteCallResponse<T> }
+	| { error: false; data: { data: null; status: number } } {
 	if (!nonNullSuccess && errorHappened) {
 		return {
 			error: true,
@@ -83,6 +87,6 @@ function allPromisesEnded(
 	}
 	return { error: false, data: { data: null, status: 200 } };
 }
-function promiseSuccess(data: remoteCallResponse) {
+function promiseSuccess<T>(data: remoteCallResponse<T>) {
 	return data;
 }

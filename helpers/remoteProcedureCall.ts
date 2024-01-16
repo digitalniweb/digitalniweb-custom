@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 import { HTTPMethods } from "../../digitalniweb-types/httpMethods.js";
 import {
@@ -25,7 +25,8 @@ import { InferAttributes } from "sequelize";
 /**
  *
  * @param options
- * @returns `remoteCallResponse` this is practically Axios call. Returns Axios response. Might return object (which parameters need to be the same as axios') or throw an error as axios would!
+ * @returns `remoteCallResponse` this is practically Axios call. Returns Axios response. Might return object (which parameters need to be the same as axios')
+ * @throws {AxiosError | customLogObject}
  */
 export async function microserviceCall<T>(
 	options: msCallOptions

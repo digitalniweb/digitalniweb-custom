@@ -166,7 +166,7 @@ export async function getServiceServicesByName(
 	if (process.env.MICROSERVICE_NAME === "globalData") {
 		microserviceInfo = await getServiceRegistryServices(name);
 	} else {
-		let path = `/api/serviceregistry/${name}`;
+		let path = `/api/serviceregistry/name/${name}`;
 		let { data: microserviceInfoData } =
 			await microserviceCall<serviceRegistryServices>({
 				name: "globalData",
@@ -508,7 +508,7 @@ export async function getMainServiceRegistryId(
 		} else {
 			let { data: msData } = await microserviceCall<MicroserviceType>({
 				name: "globalData",
-				path: `/api/serviceregistry/getmainbyname/${microservice}`,
+				path: `/api/serviceregistry/mainservicebyname/${microservice}`,
 				method: "GET",
 			});
 			ms = msData;

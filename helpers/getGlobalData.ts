@@ -10,9 +10,9 @@ import {
 
 import { Model, ModelStatic } from "sequelize";
 import db from "../../server/models/index.js";
-import { globalDataModelsListMap } from "../../custom/variables/globalData.js";
 
 /**
+ * This doesn't work in `globalData ms` if we wanted to get lists there! Typescript doesn't like it to mix the code together in here. Need to be done in separate file if needed.
  * @param ModelName model name of globalData
  * @param column what column of model will be used to get the list
  * @param array if not undefined nor empty then use this array to find data of Model by column
@@ -27,22 +27,15 @@ export async function getGlobalDataList<
 		let where;
 		if (column && array && Array.isArray(array) && array.length > 0)
 			where = { [column]: array };
-		if (process.env.MICROSERVICE_NAME === "globalData") {
-			list = await getGlobalDataModelList(
-				globalDataModelsListMap[ModelName] as any, // typescript doesn't like this even though it works
-				where
-			);
-		} else {
-			let options = {
-				name: "globalData",
-				path: `/api/${ModelName}/list`,
-			} as msCallOptions;
-			if (where) options.data = { where };
-			let { data } = await microserviceCall<
-				InferAttributes<globalDataModelsListMapType[T]>[]
-			>(options);
-			list = data;
-		}
+		let options = {
+			name: "globalData",
+			path: `/api/${ModelName}/list`,
+		} as msCallOptions;
+		if (where) options.data = { where };
+		let { data } = await microserviceCall<
+			InferAttributes<globalDataModelsListMapType[T]>[]
+		>(options);
+		list = data;
 		return list;
 	} catch (error: any) {
 		log({ type: "functions", error, status: "error" });

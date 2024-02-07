@@ -4,35 +4,46 @@ import { log } from "./logger.js";
 import { microserviceCall } from "./remoteProcedureCall.js";
 import { msCallOptions } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall";
 import {
-	globalDataModelsListMap,
+	globalDataModelsListMapType,
 	globalDataListWhereMap,
 } from "../../digitalniweb-types/custom/helpers/globalData";
 
 import { Model, ModelStatic } from "sequelize";
 import db from "../../server/models/index.js";
+import { globalDataModelsListMap } from "../../custom/variables/globalData.js";
 
 /**
- * !!! I should add functionality for globalData ms - now it doesn't work on globalData ms
  * @param ModelName model name of globalData
  * @param column what column of model will be used to get the list
  * @param array if not undefined nor empty then use this array to find data of Model by column
  * @returns list of all or specified data from globalData
  */
 export async function getGlobalDataList<
-	T extends keyof globalDataModelsListMap,
+	T extends keyof globalDataModelsListMapType,
 	P extends keyof globalDataListWhereMap
 >(ModelName: T, column?: P, array?: globalDataListWhereMap[P]) {
 	try {
-		let options = {
-			name: "globalData",
-			path: `/api/${ModelName}/list`,
-		} as msCallOptions;
+		let list;
+		let where;
 		if (column && array && Array.isArray(array) && array.length > 0)
-			options.data = { [column]: array };
-		let { data } = await microserviceCall<
-			InferAttributes<InstanceType<globalDataModelsListMap[T]>>[]
-		>(options);
-		return data;
+			where = { [column]: array };
+		if (process.env.MICROSERVICE_NAME === "globalData") {
+			list = await getGlobalDataModelList(
+				globalDataModelsListMap[ModelName] as any, // typescript doesn't like this even though it works
+				where
+			);
+		} else {
+			let options = {
+				name: "globalData",
+				path: `/api/${ModelName}/list`,
+			} as msCallOptions;
+			if (where) options.data = { where };
+			let { data } = await microserviceCall<
+				InferAttributes<globalDataModelsListMapType[T]>[]
+			>(options);
+			list = data;
+		}
+		return list;
 	} catch (error: any) {
 		log({ type: "functions", error, status: "error" });
 		return false;
@@ -43,7 +54,7 @@ async function getGlobalDataModelList<T extends Model>(
 	where: WhereOptions = {}
 ) {
 	let data = await db.transaction(async (transaction) => {
-		return await model.findAll({
+		return await model?.findAll({
 			where,
 			transaction,
 		});

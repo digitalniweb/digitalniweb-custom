@@ -31,7 +31,7 @@ import { InferAttributes } from "sequelize";
 export async function microserviceCall<T>(
 	options: msCallOptions
 ): Promise<remoteCallResponse<T>> {
-	const { name, id, scope = "single" }: msCallOptions = options;
+	const { name, id, scope = "single", cache = true }: msCallOptions = options;
 
 	if (!microserviceExists(name))
 		throw {
@@ -50,8 +50,10 @@ export async function microserviceCall<T>(
 		} as customLogObject;
 	}
 
-	let apiCache = ApiAppCache.get(options);
-	if (apiCache) return apiCache;
+	if (cache) {
+		let apiCache = ApiAppCache.get(options);
+		if (apiCache) return apiCache;
+	}
 
 	let headers = createCallHeaders(options);
 	let finalPath;
@@ -160,11 +162,13 @@ function addRegisterApiKeyAuthHeader() {
 export async function appCall<T>(
 	options: appCallOptions
 ): Promise<remoteCallResponse<T>> {
-	const { name } = options;
+	const { name, cache = true } = options;
 	if (!options.method) options.method = "GET";
 
-	let apiCache = ApiAppCache.get(options);
-	if (apiCache) return apiCache;
+	if (cache) {
+		let apiCache = ApiAppCache.get(options);
+		if (apiCache) return apiCache;
+	}
 
 	let service = await getApp(name);
 

@@ -1,11 +1,20 @@
+/**
+ * parentRootFallback `boolean` if true and item has no parent then append it to root, otherwise skip
+ */
 type buildTreeOptions = {
 	children?: string;
 	parentId?: string;
 	id?: string;
+	parentRootFallback?: boolean;
 };
 
 export function buildTree<T>(array: T[], options: buildTreeOptions = {}): T[] {
-	const { children = "children", parentId = "parentId", id = "id" } = options;
+	const {
+		children = "children",
+		parentId = "parentId",
+		id = "id",
+		parentRootFallback = false,
+	} = options;
 
 	// Step 1: Create a map for quick lookup of nodes by their id
 	const nodeMap = new Map<number | string, T>();
@@ -31,7 +40,8 @@ export function buildTree<T>(array: T[], options: buildTreeOptions = {}): T[] {
 				(parent as any)[children].push(node);
 			} else {
 				// Handle the case where the parentId could not be found
-				(node as any)[`original${parentId}`] =
+				if (parentRootFallback === false) return;
+				(node as any)[`parentFallback${parentId}`] =
 					node[parentId as keyof T];
 				(node as any)[parentId as keyof T] = null;
 				tree.push(node);

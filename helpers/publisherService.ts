@@ -1,5 +1,5 @@
 import IoRedis, { RedisCommander } from "ioredis";
-import redisConfig from "../variables/redisClient.js";
+import redisConfig from "../variables/redisConfig.js";
 import EventEmitter from "events";
 
 class Publisher {

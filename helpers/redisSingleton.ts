@@ -1,5 +1,5 @@
 import IoRedis from "ioredis";
-import redisConfig from "../variables/redisClient.js";
+import redisConfig from "../variables/redisConfig.js";
 
 class Redis {
 	static #ioRedis: IoRedis;

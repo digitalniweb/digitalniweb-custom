@@ -4,7 +4,7 @@ import IoRedis, {
 	RedisValue,
 	RedisCommander,
 } from "ioredis";
-import redisConfig from "../variables/redisClient.js";
+import redisConfig from "../variables/redisConfig.js";
 import { log } from "./logger.js";
 import { commonError } from "../../digitalniweb-types/customHelpers/logger.js";
 

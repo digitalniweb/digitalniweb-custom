@@ -1,15 +1,15 @@
 import IoRedis from "ioredis";
-import redis from "../../server/config/redisClient.js";
+import redisConfig from "../variables/redisClient.js";
 
 class Redis {
-    static #ioRedis: IoRedis;
+	static #ioRedis: IoRedis;
 
-    static ioRedis(): IoRedis {
-        if (!Redis.#ioRedis) {
-            Redis.#ioRedis = redis;
-        }
-        return Redis.#ioRedis;
-    }
+	static ioRedis(): IoRedis {
+		if (!Redis.#ioRedis) {
+			Redis.#ioRedis = new IoRedis(redisConfig);
+		}
+		return Redis.#ioRedis;
+	}
 }
 
 export default Redis.ioRedis();

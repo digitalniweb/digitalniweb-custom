@@ -85,8 +85,6 @@ export async function microserviceCall<T>(
 
 		return response;
 	} else if (scope === "all") {
-		// !!! here implement appCache get - for single scope in all scope and save id for all scope (now it is partially only this)
-
 		// if there was cached particular api call then it would already be retrieved. But id shard of this call could still be cached and I wouldn't need to call all services to find the right one
 		let cachedId = ApiAppCache.get(options, "shardId");
 		if (cachedId) {

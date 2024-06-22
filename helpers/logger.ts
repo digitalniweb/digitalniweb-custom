@@ -117,8 +117,8 @@ const logApi: logFunction = (customLogObject, req): responseLogObject => {
 		message: "OK",
 	};
 	let logObject = {} as logObject;
-	if (customLogObject?.error) {
-		logObject.error = {} as commonError;
+	if (customLogObject.error) {
+		logObject.error = {};
 		if (typeof customLogObject.error === "string") {
 			logObject.error.message = customLogObject.error;
 		} else
@@ -126,15 +126,9 @@ const logApi: logFunction = (customLogObject, req): responseLogObject => {
 				["name", "stack", "message", "code"] as (keyof commonError)[]
 			).forEach((errorProp) => {
 				if ((customLogObject?.error as commonError)[errorProp]) {
-					if (errorProp === "code") {
-						(logObject.error as commonError)[errorProp] = (
-							customLogObject.error as commonError
-						)[errorProp];
-					} else {
-						(logObject.error as commonError)[errorProp] = (
-							customLogObject.error as commonError
-						)[errorProp];
-					}
+					(logObject.error as commonError)[errorProp] = (
+						customLogObject.error as commonError
+					)[errorProp];
 				}
 			});
 	}

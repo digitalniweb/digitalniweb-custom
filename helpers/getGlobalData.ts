@@ -1,4 +1,4 @@
-import { InferAttributes, WhereOptions } from "sequelize";
+import { Includeable, InferAttributes, WhereOptions } from "sequelize";
 import { Request } from "express";
 import { log } from "./logger.js";
 import { microserviceCall } from "./remoteProcedureCall.js";
@@ -44,25 +44,36 @@ export async function getGlobalDataList<
 }
 async function getGlobalDataModelList<T extends Model>(
 	model: ModelStatic<T>,
-	where: WhereOptions = {}
+	where: WhereOptions = {},
+	include: Includeable | Includeable[] | undefined = undefined
 ) {
 	let data = await db.transaction(async (transaction) => {
 		return await model?.findAll({
 			where,
+			include,
 			transaction,
 		});
 	});
 	return data;
 }
+
+/**
+ *
+ * @param req
+ * @param model
+ * @param include use as ussual Sequelize include
+ * @returns
+ */
 export async function getRequestGlobalDataModelList<T extends Model>(
 	req: Request,
-	model: ModelStatic<T>
+	model: ModelStatic<T>,
+	include: Includeable | Includeable[] | undefined = undefined
 ) {
 	const { code, name, id } = req.query as globalDataListWhereMap;
 	let where = {} as globalDataListWhereMap;
 	if (id) where = { id };
 	else if (code) where = { code };
 	else if (name) where = { name };
-	let data = await getGlobalDataModelList(model, where);
+	let data = await getGlobalDataModelList(model, where, include);
 	return data;
 }

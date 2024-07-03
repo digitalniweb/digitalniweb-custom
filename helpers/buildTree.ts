@@ -8,6 +8,12 @@ type buildTreeOptions = {
 	parentRootFallback?: boolean;
 };
 
+/**
+ * If using for building Sequelize tree we need raw data, not Sequelize instance. meaning use "raw: true" or "instance.map((entity) => entity.get({ plain: true }));"
+ * @param array
+ * @param options
+ * @returns
+ */
 export function buildTree<T>(array: T[], options: buildTreeOptions = {}): T[] {
 	const {
 		children = "children",

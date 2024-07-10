@@ -1,4 +1,9 @@
-import { Includeable, InferAttributes, WhereOptions } from "sequelize";
+import {
+	FindAttributeOptions,
+	Includeable,
+	InferAttributes,
+	WhereOptions,
+} from "sequelize";
 import { Request } from "express";
 import { log } from "./logger.js";
 import { microserviceCall } from "./remoteProcedureCall.js";
@@ -42,15 +47,18 @@ export async function getGlobalDataList<
 		return false;
 	}
 }
+
 async function getGlobalDataModelList<T extends Model>(
 	model: ModelStatic<T>,
 	where: WhereOptions = {},
-	include: Includeable | Includeable[] | undefined = undefined
+	include: Includeable | Includeable[] | undefined = undefined,
+	attributes: FindAttributeOptions | undefined = undefined
 ) {
 	let data = await db.transaction(async (transaction) => {
 		return await model?.findAll({
 			where,
 			include,
+			attributes,
 			transaction,
 		});
 	});
@@ -76,4 +84,60 @@ export async function getRequestGlobalDataModelList<T extends Model>(
 	else if (name) where = { name };
 	let data = await getGlobalDataModelList(model, where, include);
 	return data;
+}
+
+export async function getGlobalDataModelArray<
+	T extends keyof globalDataModelsListMapType,
+	P extends keyof globalDataListWhereMap
+>(ModelName: T, column?: P, array?: globalDataListWhereMap[P], attribute?: P) {
+	try {
+		let list;
+		let where;
+		if (column && array && Array.isArray(array) && array.length > 0)
+			where = { [column]: array };
+		if (typeof attribute === "undefined") attribute = "id" as P;
+
+		let options = {
+			name: "globalData",
+			path: `/api/${ModelName}/array`,
+		} as msCallOptions;
+		if (where) options.data = { where, attribute };
+		let { data } = await microserviceCall<
+			InferAttributes<globalDataModelsListMapType[T]>[]
+		>(options);
+		list = data;
+		return list;
+	} catch (error: any) {
+		log({ type: "functions", error, status: "error" });
+		return false;
+	}
+}
+
+/**
+ *
+ * @param req
+ * @param model
+ * @param include use as ussual Sequelize include
+ * @returns
+ */
+export async function getRequestGlobalDataModelArray<T extends Model>(
+	req: Request,
+	model: ModelStatic<T>
+) {
+	let attribute = req.query.attribute as keyof InferAttributes<T>;
+	let column = req.query.column as keyof InferAttributes<T>;
+	let array = req.query.array as [];
+	if (!attribute || !column || !array) return;
+	let attributes = [attribute] as string[];
+	let where = {
+		[column]: array,
+	} as WhereOptions;
+	let data = await getGlobalDataModelList(
+		model,
+		where,
+		undefined,
+		attributes
+	);
+	const responseArray = data.map((row) => row[attribute]);
+	return responseArray;
 }

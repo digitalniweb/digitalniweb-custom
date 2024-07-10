@@ -92,21 +92,17 @@ export async function getGlobalDataModelArray<
 >(ModelName: T, column?: P, array?: globalDataListWhereMap[P], attribute?: P) {
 	try {
 		let list;
-		let where;
-		if (column && array && Array.isArray(array) && array.length > 0)
-			where = { [column]: array };
 		if (typeof attribute === "undefined") attribute = "id" as P;
 
 		let options = {
 			name: "globalData",
 			path: `/api/${ModelName}/array`,
+			data: { column, array, attribute },
 		} as msCallOptions;
-		if (where) options.data = { where, attribute };
-		let { data } = await microserviceCall<
-			InferAttributes<globalDataModelsListMapType[T]>[]
-		>(options);
-		list = data;
-		return list;
+		let { data } = await microserviceCall<globalDataListWhereMap[P]>(
+			options
+		);
+		return data;
 	} catch (error: any) {
 		log({ type: "functions", error, status: "error" });
 		return false;

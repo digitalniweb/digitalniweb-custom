@@ -2,6 +2,8 @@ import {
 	FindAttributeOptions,
 	Includeable,
 	InferAttributes,
+	Order,
+	WhereAttributeHash,
 	WhereOptions,
 } from "sequelize";
 import { Request } from "express";
@@ -52,7 +54,8 @@ async function getGlobalDataModelList<T extends Model>(
 	model: ModelStatic<T>,
 	where: WhereOptions = {},
 	include: Includeable | Includeable[] | undefined = undefined,
-	attributes: FindAttributeOptions | undefined = undefined
+	attributes: FindAttributeOptions | undefined = undefined,
+	order: Order | undefined = undefined
 ) {
 	let data = await db.transaction(async (transaction) => {
 		return await model?.findAll({
@@ -60,6 +63,7 @@ async function getGlobalDataModelList<T extends Model>(
 			include,
 			attributes,
 			transaction,
+			order,
 		});
 	});
 	return data;
@@ -69,20 +73,28 @@ async function getGlobalDataModelList<T extends Model>(
  *
  * @param req
  * @param model
- * @param include use as ussual Sequelize include
+ * @param include use as usual Sequelize include
  * @returns
  */
 export async function getRequestGlobalDataModelList<T extends Model>(
 	req: Request,
 	model: ModelStatic<T>,
-	include: Includeable | Includeable[] | undefined = undefined
+	include: Includeable | Includeable[] | undefined = undefined,
+	where: WhereAttributeHash | undefined = undefined,
+	order: Order | undefined = undefined
 ) {
 	const { code, name, id } = req.query as globalDataListWhereMap;
-	let where = {} as globalDataListWhereMap;
-	if (id) where = { id };
-	else if (code) where = { code };
-	else if (name) where = { name };
-	let data = await getGlobalDataModelList(model, where, include);
+	if (!where) where = {};
+	if (id) where.id = id;
+	else if (code) where.code = code;
+	else if (name) where.name = name;
+	let data = await getGlobalDataModelList(
+		model,
+		where,
+		include,
+		undefined,
+		order
+	);
 	return data;
 }
 

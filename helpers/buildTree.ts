@@ -7,6 +7,7 @@ type buildTreeOptions = {
 	id?: string;
 	parentRootFallback?: boolean;
 };
+type TreeNode<T> = T & { children?: TreeNode<T>[] };
 
 /**
  * If using for building Sequelize tree we need raw data, not Sequelize instance. meaning use "raw: true" or "instance.map((entity) => entity.get({ plain: true }));"
@@ -14,7 +15,10 @@ type buildTreeOptions = {
  * @param options
  * @returns
  */
-export function buildTree<T>(array: T[], options: buildTreeOptions = {}): T[] {
+export function buildTree<T>(
+	array: T[],
+	options: buildTreeOptions = {}
+): TreeNode<T>[] {
 	const {
 		children = "children",
 		parentId = "parentId",
@@ -28,14 +32,14 @@ export function buildTree<T>(array: T[], options: buildTreeOptions = {}): T[] {
 		nodeMap.set(node[id as keyof T] as string | number, node);
 	});
 	// Step 2: Initialize the tree
-	const tree: T[] = [];
+	const tree: TreeNode<T>[] = [];
 
 	// Step 3: Iterate over the array and build the tree structure
 	array.forEach((node) => {
 		const pid = node[parentId as keyof T];
 		if (pid === null) {
 			// Root node
-			tree.push(node);
+			tree.push(node as any);
 		} else {
 			// Child node
 			const parent = nodeMap.get(pid as string | number);
@@ -50,7 +54,7 @@ export function buildTree<T>(array: T[], options: buildTreeOptions = {}): T[] {
 				(node as any)[`parentFallback${parentId}`] =
 					node[parentId as keyof T];
 				(node as any)[parentId as keyof T] = null;
-				tree.push(node);
+				tree.push(node as any);
 			}
 		}
 	});

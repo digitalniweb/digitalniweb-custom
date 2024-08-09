@@ -9,6 +9,8 @@ type buildTreeOptions = {
 };
 type TreeNode<T> = T & { children?: TreeNode<T>[] };
 
+export type buildTreeType<T> = ReturnType<typeof buildTree<T>>;
+
 /**
  * If using for building Sequelize tree we need raw data, not Sequelize instance. meaning use "raw: true" or "instance.map((entity) => entity.get({ plain: true }));"
  * @param array

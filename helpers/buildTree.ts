@@ -7,7 +7,7 @@ type buildTreeOptions = {
 	id?: string;
 	parentRootFallback?: boolean;
 };
-type TreeNode<T> = T & { children?: TreeNode<T>[] };
+export type TreeNode<T> = T & { children?: TreeNode<T>[] };
 
 export type buildTreeType<T> = ReturnType<typeof buildTree<T>>;
 

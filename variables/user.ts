@@ -13,6 +13,7 @@ export const userLoginResponseParams: (keyof pickUserLoginResponse)[] = [
 	"nickname",
 	"email",
 	"roleId",
+	"role",
 	"credit",
 	"Tenant",
 	"UserPrivileges",

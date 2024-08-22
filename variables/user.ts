@@ -20,6 +20,7 @@ export const userLoginResponseParams: (keyof pickUserLoginResponse)[] = [
 	"UserModulesIds",
 	"websiteId",
 	"websitesMsId",
+	"websiteUuid",
 ] as const;
 
 // autenticated user data in ms: res.locals.userVerified
@@ -33,6 +34,7 @@ export const userVerifiedParams: (keyof userVerified)[] = [
 	"uuid",
 	"websiteId",
 	"websitesMsId",
+	"websiteUuid",
 ] as const;
 
 // jwt / access_token
@@ -48,6 +50,7 @@ export const userJWTParams: (keyof userJWT)[] = [
 	"uuid",
 	"websiteId",
 	"websitesMsId",
+	"websiteUuid",
 ] as const;
 
 // refresh_token
@@ -71,4 +74,5 @@ export const userStoreParams: (keyof userStore)[] = [
 	"uuid",
 	"websiteId",
 	"websitesMsId",
+	"websiteUuid",
 ] as const;

@@ -23,52 +23,19 @@ class ServerCache {
 	constructor() {
 		// https://www.javatpoint.com/redis-all-commands (redis commands(not IoRedis'))
 		this.#cache = new IoRedis(redisConfig);
-		this.#cache.on("error", (error) => {
-			log({
-				error,
-				message: "error serverCache.ts",
-				type: "consoleLogProduction",
-				status: "error",
-			});
-
-			// this is different not working anymore
-			/* if (!(error.code in this.#errors)) {
-				this.#errors[error.code] = 0;
-			}
-			this.#errors[error.code]++;
-			if (error.code === "ECONNREFUSED") {
-				let disconnectedMessage = `Microservice '${process.env.MICROSERVICE_NAME}' can't connect to Redis!`;
-				if (this.#disconnectOnCrash) {
-					if (this.#errors[error.code] >= this.#disconnectNumberOfTries) {
-						// !!! there should also be some kind of notification in here that redis isn't working on this microservice
-						log({
-							error: {
-								message: disconnectedMessage,
-							},
-						});
-						this.#cache.disconnect();
-					}
-				} else {
-					if (this.#errors[error.code] == this.#disconnectNumberOfTries) {
-						// !!! there should also be some kind of notification in here that redis isn't working on this microservice
-						log({
-							error: {
-								message: disconnectedMessage,
-							},
-						});
-					}
-				}
-			} */
-		});
 
 		this.#cache.on("connect", () => {
-			if ("ECONNREFUSED" in this.#errors)
-				delete this.#errors["ECONNREFUSED"];
 			log({
 				message: `Redis connected to '${process.env.MICROSERVICE_NAME}'`,
 				type: "consoleLogProduction",
 				status: "success",
 			});
+		});
+
+		this.#cache.on("error", () => {
+			// For now just to catch the error so it doesn't pollute terminal.
+			// Can be extended for `cache` errors
+			// Connection error of Redis is resolved in `publisherService.ts`
 		});
 	}
 

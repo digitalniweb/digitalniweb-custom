@@ -46,7 +46,6 @@ class Publisher {
 			}
 		});
 		this.#publisher.on("connect", () => {
-			console.log(JSON.stringify(this.#errors));
 			this.#errors = {};
 
 			log({

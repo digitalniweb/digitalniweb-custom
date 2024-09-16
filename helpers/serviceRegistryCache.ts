@@ -98,31 +98,52 @@ export async function getApp(
 			if ((await requestServiceRegistryInfo()) === false)
 				return undefined;
 		}
-		let { data: appData } = await microserviceCall<
-			InferAttributes<AppType>
-		>({
-			name: "globalData",
-			path: `/api/serviceregistry/app?name=${name}`,
-		});
-		let app = appData;
-		if (!app) return undefined;
-		setApp({ name, info: app });
-		return app;
+		try {
+			let { data: appData } = await microserviceCall<
+				InferAttributes<AppType>
+			>({
+				name: "globalData",
+				path: `/api/serviceregistry/app?name=${name}`,
+			});
+			let app = appData;
+			if (!app) return undefined;
+			setApp({ name, info: app });
+			return app;
+		} catch (error: any) {
+			log({
+				type: "functions",
+				status: "warning",
+				message:
+					"Couldn't get app via 'getApp' when 'serviceRegistryAppCache=undefined'.",
+				error,
+			});
+			return undefined;
+		}
 	}
 
 	let app = serviceRegistryAppCache[name] as
 		| InferAttributes<AppType>
 		| undefined;
 	if (app === undefined) {
-		let { data: appData } = await microserviceCall<
-			InferAttributes<AppType>
-		>({
-			name: "globalData",
-			path: `/api/serviceregistry/app?name=${name}`,
-		});
-		if (!appData) return undefined;
-		app = appData;
-		setApp({ name, info: app });
+		try {
+			let { data: appData } = await microserviceCall<
+				InferAttributes<AppType>
+			>({
+				name: "globalData",
+				path: `/api/serviceregistry/app?name=${name}`,
+			});
+			if (!appData) return undefined;
+			app = appData;
+			setApp({ name, info: app });
+		} catch (error: any) {
+			log({
+				type: "functions",
+				status: "warning",
+				message: "Couldn't get app via 'getApp'.",
+				error,
+			});
+			return undefined;
+		}
 	}
 	return app;
 }

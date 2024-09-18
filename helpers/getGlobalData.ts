@@ -109,7 +109,7 @@ export async function getGlobalDataModelArray<
 		let options = {
 			name: "globalData",
 			path: `/api/${ModelName}/array`,
-			data: { column, array, attribute },
+			params: { column, array, attribute },
 		} as msCallOptions;
 		let { data } = await microserviceCall<globalDataListWhereMap[P]>(
 			options

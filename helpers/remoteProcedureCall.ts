@@ -258,14 +258,6 @@ async function makeCall<T>(
 		cacheKey,
 	}: remoteServiceCallInfo = options;
 
-	if (method === "GET") {
-		params = {
-			...data,
-			...params,
-		};
-		data = {};
-	}
-
 	let axiosResponse = await axios({
 		url,
 		method,

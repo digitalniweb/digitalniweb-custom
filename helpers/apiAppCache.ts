@@ -88,7 +88,7 @@ export class ApiAppCache {
 			// creates parameters (after '?' e.g.'?id=1') for GET requests
 			let urlParamsString = axios.getUri({
 				url: "",
-				params: { ...options.data, ...options.params },
+				params: options.params,
 			});
 			otherKeys.push(urlParamsString);
 		} else if (mainKey === "apiCacheMsAll") {

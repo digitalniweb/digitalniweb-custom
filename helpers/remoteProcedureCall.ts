@@ -18,6 +18,7 @@ import {
 	remoteCallResponse,
 	cachedResponseData,
 } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
+import AppCache from "./appCache.js";
 import ApiAppCache from "./apiAppCache.js";
 import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 import { InferAttributes } from "sequelize";
@@ -31,7 +32,12 @@ import { InferAttributes } from "sequelize";
 export async function microserviceCall<T>(
 	options: msCallOptions
 ): Promise<remoteCallResponse<T>> {
-	const { name, id, scope = "single", cache = true }: msCallOptions = options;
+	const {
+		name,
+		id,
+		scope = "single",
+		cache = undefined,
+	}: msCallOptions = options;
 
 	if (!microserviceExists(name))
 		throw {
@@ -51,6 +57,7 @@ export async function microserviceCall<T>(
 	}
 
 	if (cache) {
+		let appCache = AppCache.createKey(cache)
 		let apiCache = ApiAppCache.get(options);
 		if (apiCache) return apiCache;
 	}
@@ -160,7 +167,7 @@ function addRegisterApiKeyAuthHeader() {
 export async function appCall<T>(
 	options: appCallOptions
 ): Promise<remoteCallResponse<T>> {
-	const { name, cache = true } = options;
+	const { name, cache = false } = options;
 	if (!options.method) options.method = "GET";
 
 	if (cache) {
@@ -206,7 +213,7 @@ function createCallPath(
 		(path[0] !== "/" ? "/" : "") +
 		path;
 
-	// let urlParams = axios.getUri({url:'',params: {...options.data,...options.params}});
+	// let urlParams = axios.getUri({url:'',params: options.params});
 
 	return finalPath;
 }

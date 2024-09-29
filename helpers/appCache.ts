@@ -1,14 +1,12 @@
 import NodeCache from "node-cache";
+import { appCacheType } from "~/digitalniweb-types";
+import { cacheKey } from "~/digitalniweb-types/custom/helpers/remoteProcedureCall";
 
-type namespace =
-	| string
-	| Array<string | number | null | undefined | false>
-	| undefined;
 class AppCache {
 	static #_instance: AppCache;
 
 	#cache;
-	#namespaceSeparator = "###";
+	#keySeparator = "#|";
 
 	constructor(ttlSeconds: number = 20) {
 		this.#cache = new NodeCache({
@@ -25,8 +23,8 @@ class AppCache {
 		return AppCache.#_instance;
 	}
 
-	get(key: string, namespace?: namespace): any {
-		let finalKey = this.createKey(key, namespace);
+	get(key: cacheKey): any {
+		let finalKey = this.createKey(key);
 		return this.#cache.get(finalKey);
 	}
 
@@ -37,14 +35,14 @@ class AppCache {
 	 * @param namespace
 	 * @param ttl time to live in seconds
 	 */
-	set(key: string, value: any, namespace?: namespace, ttl?: number) {
-		let finalKey = this.createKey(key, namespace);
+	set(key: cacheKey, value: any, ttl?: number) {
+		let finalKey = this.createKey(key);
 		this.#cache.set(finalKey, value);
 		if (ttl) this.#cache.ttl(finalKey, ttl);
 	}
 
-	has(key: string, namespace?: namespace): boolean {
-		let finalKey = this.createKey(key, namespace);
+	has(key: cacheKey): boolean {
+		let finalKey = this.createKey(key);
 		return this.#cache.has(finalKey);
 	}
 
@@ -58,22 +56,28 @@ class AppCache {
 		return this.#cache.ttl(key, ttl);
 	}
 
-	del(key: string, namespace?: namespace) {
-		let finalKey = this.createKey(key, namespace);
+	del(key: cacheKey) {
+		let finalKey = this.createKey(key);
 		this.#cache.del(finalKey);
 	}
 	keys() {
 		return this.#cache.keys();
 	}
 
-	createKey(key: string, namespace?: namespace): string {
-		if (namespace === undefined) return key;
-		key = this.#namespaceSeparator + key;
-		if (Array.isArray(namespace)) {
-			namespace = namespace.filter(Boolean);
-			namespace = namespace.join(this.#namespaceSeparator);
-		} else if (typeof namespace !== "string") return "";
-		return namespace + key;
+	createKey(key: cacheKey): string {
+		if (typeof key === "string") return key;
+		else if (Array.isArray(key)) {
+			return key.join(this.#keySeparator);
+		}
+
+		// assure order
+		const sortedKeys = Object.keys(key).sort() as (keyof appCacheType)[];
+		const sortedObj = {} as appCacheType;
+		sortedKeys.forEach((propKey) => {
+			(sortedObj as any)[propKey] = key[propKey];
+		});
+
+		return Object.values(sortedObj).join(this.#keySeparator);
 	}
 }
 

@@ -17,6 +17,8 @@ import {
 
 import { Model, ModelStatic } from "sequelize";
 import db from "../../server/models/index.js";
+import { apps, microservices } from "~/digitalniweb-types/index.js";
+import { ParsedQs } from "qs";
 
 /**
  * This doesn't work in `globalData ms` if we wanted to get lists there! Typescript doesn't like it to mix the code together in here. Need to be done in separate file if needed.
@@ -27,8 +29,14 @@ import db from "../../server/models/index.js";
  */
 export async function getGlobalDataList<
 	T extends keyof globalDataModelsListMapType,
-	P extends keyof globalDataListWhereMap
->(ModelName: T, column?: P, array?: globalDataListWhereMap[P]) {
+	P extends keyof globalDataListWhereMap | undefined = undefined
+>(
+	ModelName: T,
+	column?: P,
+	array?: P extends keyof globalDataListWhereMap
+		? globalDataListWhereMap[P]
+		: undefined
+) {
 	try {
 		let list;
 		let where;
@@ -38,7 +46,14 @@ export async function getGlobalDataList<
 			name: "globalData",
 			path: `/api/${ModelName}/list`,
 		} as msCallOptions;
-		if (where) options.data = { where };
+		if (where) options.params = { where };
+
+		options.cache = {
+			type: "list",
+			ms: "globalData",
+			model: ModelName,
+		};
+
 		let { data } = await microserviceCall<
 			InferAttributes<globalDataModelsListMapType[T]>[]
 		>(options);
@@ -83,11 +98,18 @@ export async function getRequestGlobalDataModelList<T extends Model>(
 	where: WhereAttributeHash | undefined = undefined,
 	order: Order | undefined = undefined
 ) {
-	const { code, name, id } = req.query as globalDataListWhereMap;
+	const {
+		code,
+		name,
+		id,
+		where: reqWhere,
+	} = req.query as globalDataListWhereMap & { where?: ParsedQs };
 	if (!where) where = {};
 	if (id) where.id = id;
 	else if (code) where.code = code;
 	else if (name) where.name = name;
+
+	if (reqWhere) where = { ...where, ...reqWhere };
 	let data = await getGlobalDataModelList(
 		model,
 		where,

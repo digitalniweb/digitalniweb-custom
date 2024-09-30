@@ -17,7 +17,6 @@ import {
 
 import { Model, ModelStatic } from "sequelize";
 import db from "../../server/models/index.js";
-import { apps, microservices } from "~/digitalniweb-types/index.js";
 import { ParsedQs } from "qs";
 
 /**

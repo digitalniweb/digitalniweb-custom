@@ -17,9 +17,9 @@ import {
 	appCallOptions,
 	remoteCallResponse,
 	cachedResponseData,
+	cacheKey,
 } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import AppCache from "./appCache.js";
-import ApiAppCache from "./apiAppCache.js";
 import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 import { InferAttributes } from "sequelize";
 
@@ -57,8 +57,8 @@ export async function microserviceCall<T>(
 	}
 
 	if (cache) {
-		let appCache = AppCache.createKey(cache)
-		let apiCache = ApiAppCache.get(options);
+		let appCacheKey = AppCache.createKey(cache);
+		let apiCache = AppCache.get(appCacheKey);
 		if (apiCache) return apiCache;
 	}
 
@@ -87,15 +87,20 @@ export async function microserviceCall<T>(
 			method: options.method,
 			params: options.params,
 			timeout: options.timeout,
-			cacheKey: ApiAppCache.createKey(options),
+			cacheKey: AppCache.createKey(options.cache),
 		});
 
 		return response;
 	} else if (scope === "all") {
-		// if there was cached particular api call then it would already be retrieved. But id shard of this call could still be cached and I wouldn't need to call all services to find the right one
-		let cachedId = ApiAppCache.get(options, "shardId");
-		if (cachedId) {
-			let ms = await getMicroservice({ name, id: cachedId });
+		// if there was cached particular api call then it would already be retrieved. But msId (id shard) of this call could still be cached and I wouldn't need to call all services to find the right one
+		let cacheIdOptions = {
+			ms: name,
+			type: "msId",
+		} as cacheKey;
+		let cacheIdKey = AppCache.createKey(cacheIdOptions);
+		let cachedmsId = AppCache.get(cacheIdKey);
+		if (cachedmsId) {
+			let ms = await getMicroservice({ name, id: cachedmsId });
 			if (ms) {
 				finalPath = createCallPath(ms, options);
 				let data = await makeCall<T>({
@@ -105,16 +110,13 @@ export async function microserviceCall<T>(
 					method: options.method,
 					params: options.params,
 					timeout: options.timeout,
-					cacheKey: ApiAppCache.createKey({
-						...options,
-					}),
+					cacheKey: AppCache.createKey(options.cache),
 				});
 				if (data.data) {
-					ApiAppCache.resetShardIdTtl(
-						ApiAppCache.createKey(options, "shardId")
-					);
+					let ttl = 120; // in seconds
+					AppCache.ttl(cacheIdKey, ttl);
 
-					// I don't want to delete the cache because data can be really null not because of the shardId being wrong. If it is wrong though it will return wrong data if not handled somewhere (which is not implemented)
+					// I don't want to delete the cache because data can be really null not because of the msId (shardId) being wrong. If it is wrong though it will return wrong data if not handled somewhere (which is not implemented)
 				}
 
 				return data;
@@ -140,9 +142,7 @@ export async function microserviceCall<T>(
 					method: options.method,
 					params: options.params,
 					timeout: options.timeout,
-					cacheKey: ApiAppCache.createKey({
-						...options,
-					}),
+					cacheKey: AppCache.createKey(options.cache),
 				})
 			);
 		});
@@ -171,7 +171,7 @@ export async function appCall<T>(
 	if (!options.method) options.method = "GET";
 
 	if (cache) {
-		let apiCache = ApiAppCache.get(options);
+		let apiCache = AppCache.get(options.cache);
 		if (apiCache) return apiCache;
 	}
 
@@ -192,7 +192,7 @@ export async function appCall<T>(
 		params: options.params,
 		method: options.method,
 		timeout: options.timeout,
-		cacheKey: ApiAppCache.createKey(options),
+		cacheKey: AppCache.createKey(options.cache),
 	});
 }
 
@@ -274,7 +274,7 @@ async function makeCall<T>(
 		headers,
 	});
 
-	if (method === "GET" && axiosResponse.status < 400 && cacheKey) {
+	if (method === "GET" && cacheKey && axiosResponse.status < 400) {
 		let cacheData = {
 			data: axiosResponse.data,
 			status: 304,
@@ -287,7 +287,7 @@ async function makeCall<T>(
 			cacheData.headers["x-app-id"] =
 				axiosResponse?.headers?.["x-app-id"];
 		}
-		ApiAppCache.set(cacheKey, cacheData);
+		AppCache.set(cacheKey, cacheData);
 	}
 
 	return axiosResponse;

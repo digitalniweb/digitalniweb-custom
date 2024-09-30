@@ -518,9 +518,8 @@ export async function getMainServiceRegistryId(
 	microservice: microservices
 ): Promise<number | null> {
 	try {
-		let id = appCache.get(microservice, "mainServiceRegistryId") as
-			| number
-			| undefined;
+		let key = appCache.createKey([microservice, "mainServiceRegistryId"]);
+		let id = appCache.get(key) as number | undefined;
 		if (id) return id;
 
 		let ms: MicroserviceType | null;
@@ -536,7 +535,7 @@ export async function getMainServiceRegistryId(
 		}
 		if (ms === null || !ms.mainServiceRegistryId) return null;
 		id = ms.mainServiceRegistryId;
-		appCache.set(microservice, id, "mainServiceRegistryId");
+		appCache.set(key, "mainServiceRegistryId");
 		return id;
 	} catch (error: any) {
 		log({

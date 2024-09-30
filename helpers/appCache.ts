@@ -1,6 +1,6 @@
 import NodeCache from "node-cache";
-import { appCacheType } from "~/digitalniweb-types";
-import { cacheKey } from "~/digitalniweb-types/custom/helpers/remoteProcedureCall";
+import { appCacheType } from "./../../digitalniweb-types";
+import { cacheKey } from "./../../digitalniweb-types/custom/helpers/remoteProcedureCall";
 
 class AppCache {
 	static #_instance: AppCache;
@@ -23,7 +23,8 @@ class AppCache {
 		return AppCache.#_instance;
 	}
 
-	get(key: cacheKey): any {
+	get(key?: cacheKey): any {
+		if (!key) return;
 		let finalKey = this.createKey(key);
 		return this.#cache.get(finalKey);
 	}
@@ -64,7 +65,8 @@ class AppCache {
 		return this.#cache.keys();
 	}
 
-	createKey(key: cacheKey): string {
+	createKey(key?: cacheKey): string {
+		if (!key) return "";
 		if (typeof key === "string") return key;
 		else if (Array.isArray(key)) {
 			return key.join(this.#keySeparator);

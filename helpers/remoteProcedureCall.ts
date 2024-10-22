@@ -23,6 +23,7 @@ import AppCache from "./appCache.js";
 import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 import { InferAttributes } from "sequelize";
 
+// ! cache doesn't work!
 /**
  *
  * @param options
@@ -94,11 +95,13 @@ export async function microserviceCall<T>(
 	} else if (scope === "all") {
 		// if there was cached particular api call then it would already be retrieved. But msId (id shard) of this call could still be cached and I wouldn't need to call all services to find the right one
 		let cacheIdOptions = {
+			...options.cache,
 			ms: name,
 			type: "msId",
 		} as cacheKey;
 		let cacheIdKey = AppCache.createKey(cacheIdOptions);
 		let cachedmsId = AppCache.get(cacheIdKey);
+
 		if (cachedmsId) {
 			let ms = await getMicroservice({ name, id: cachedmsId });
 			if (ms) {

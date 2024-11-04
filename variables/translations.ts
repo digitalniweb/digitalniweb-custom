@@ -22,7 +22,25 @@ export const defaultTranslations: translations = {
 	Delete: {
 		cs: "Smazat",
 	},
+	Save: {
+		cs: "Uložit",
+	},
 	Find: {
 		cs: "Hledat",
+	},
+	Order: {
+		cs: "Pořadí",
+	},
+	Created: {
+		cs: "Vytvořeno",
+	},
+	Updated: {
+		cs: "Upraveno",
+	},
+	Deleted: {
+		cs: "Smazáno",
+	},
+	Active: {
+		cs: "Aktivní",
 	},
 };

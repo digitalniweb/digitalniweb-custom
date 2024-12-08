@@ -43,4 +43,29 @@ export const defaultTranslations: translations = {
 	Active: {
 		cs: "Aktivní",
 	},
+	"Delete?": {
+		en: "Do you really want to delete this?",
+		cs: "Opravdu smazat?",
+	},
+	"Choose Widget": {
+		cs: "Vyberte Widget",
+	},
+	"Edit Widget": {
+		cs: "Upravit Widget",
+	},
+	okCancelCancel: {
+		en: "Cancel",
+		cs: "Zavřít",
+	},
+	okCancelOk: {
+		en: "OK",
+	},
+	yesNoCancel: {
+		en: "No",
+		cs: "Ne",
+	},
+	yesNoOk: {
+		en: "Yes",
+		cs: "Ano",
+	},
 };

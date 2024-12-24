@@ -4,6 +4,10 @@ export const defaultTranslations: translations = {
 	Name: {
 		cs: "Jméno",
 	},
+	Name2: {
+		en: "Name",
+		cs: "Název",
+	},
 	Icon: {
 		cs: "Ikonka",
 	},
@@ -53,6 +57,9 @@ export const defaultTranslations: translations = {
 	"Edit Widget": {
 		cs: "Upravit Widget",
 	},
+	"Fill in this field": {
+		cs: "Vyplňte prosím toto pole",
+	},
 	okCancelCancel: {
 		en: "Cancel",
 		cs: "Zavřít",
@@ -67,5 +74,8 @@ export const defaultTranslations: translations = {
 	yesNoOk: {
 		en: "Yes",
 		cs: "Ano",
+	},
+	"Text editor": {
+		cs: "Textový editor",
 	},
 };

@@ -51,7 +51,12 @@ const consoleLogDev: logFunction = (customLogObject, req): void => {
 		logObject.serviceType = "microservice";
 		logObject.serviceId = process.env.MICROSERVICE_ID;
 	}
-
+	if (customLogObject.error instanceof Error) {
+		let originalError = customLogObject.error;
+		customLogObject.error = {};
+		customLogObject.error.message = originalError.message;
+		customLogObject.error.name = originalError.name;
+	}
 	coloredLog(logObject, customLogObject.type, customLogObject.status);
 };
 

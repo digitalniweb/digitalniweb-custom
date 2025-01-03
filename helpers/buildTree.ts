@@ -12,7 +12,8 @@ export type TreeNode<T> = T & { children?: TreeNode<T>[] };
 export type buildTreeType<T> = ReturnType<typeof buildTree<T>>;
 
 /**
- * If using for building Sequelize tree we need raw data, not Sequelize instance. meaning use "raw: true" or "instance.map((entity) => entity.get({ plain: true }));"
+ * If using for building Sequelize tree we need data in object, not Sequelize instance. meaning use "(instance) => instance.toJSON();" or "instance.map((entity) => entity.get({ plain: true }));", for arrays "const data = array.map((instance) => instance.toJSON());"
+ * "raw: true" changes booleans to 0 and 1
  * @param array
  * @param options
  * @returns

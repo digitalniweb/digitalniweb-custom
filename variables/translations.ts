@@ -78,4 +78,27 @@ export const defaultTranslations: translations = {
 	"Text editor": {
 		cs: "Textový editor",
 	},
+	DiscardChanges: {
+		en: "Are you sure you want to discard your changes?",
+		cs: "Opravdu chcete zahodit změny?",
+	},
+	"Something went wrong": {
+		cs: "Něco se pokazilo",
+	},
+	FormValidationError: {
+		en: "Filled-in information contain errors.",
+		cs: "Vyplněné informace obsahují chyby.",
+	},
+	NoChangeMade: {
+		en: "No changes were registered",
+		cs: "Nebyly zaregistrovány žádné změny",
+	},
+	UseMouseToDragWidgets: {
+		en: "To change order of widgets you can drag and drop individual widgets using mouse. Or use arrow icons.",
+		cs: "Ke změně pořadí widgetů můžete kliknou a přetáhnout jednotlivé widgety pomocí myši. Nebo použijte ikonky šipek.",
+	},
+	AddWidgetInfo: {
+		en: "Widgets are components of current page. Start with adding a widget.",
+		cs: "Widgety jsou části aktuální stránky. Začněte přidáním widgetu.",
+	},
 };

@@ -101,4 +101,11 @@ export const defaultTranslations: translations = {
 		en: "Widgets are components of current page. Start with adding a widget.",
 		cs: "Widgety jsou části aktuální stránky. Začněte přidáním widgetu.",
 	},
+	ErrorLoadingData: {
+		en: "Error has occured while downloading data",
+		cs: "Nepodařilo se načíst data",
+	},
+	"Items per page": {
+		cs: "Počet položek na stránku",
+	},
 };

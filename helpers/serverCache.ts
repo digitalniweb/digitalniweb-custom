@@ -14,11 +14,11 @@ class ServerCache {
 	#cache: IoRedis;
 
 	// number of errors occurred
-	#errors: { [key: string]: number } = {};
+	// #errors: { [key: string]: number } = {};
 
 	// if IoRedis is not disconnected, then it tries to connect to Redis indefinitely
-	#disconnectOnCrash: boolean = false;
-	#disconnectNumberOfTries: number = 20;
+	// #disconnectOnCrash: boolean = false;
+	// #disconnectNumberOfTries: number = 20;
 
 	constructor() {
 		// https://www.javatpoint.com/redis-all-commands (redis commands(not IoRedis'))

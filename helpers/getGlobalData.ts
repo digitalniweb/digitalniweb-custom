@@ -124,7 +124,6 @@ export async function getGlobalDataModelArray<
 	P extends keyof globalDataListWhereMap
 >(ModelName: T, column?: P, array?: globalDataListWhereMap[P], attribute?: P) {
 	try {
-		let list;
 		if (typeof attribute === "undefined") attribute = "id" as P;
 
 		let options = {

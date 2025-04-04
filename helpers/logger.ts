@@ -70,12 +70,12 @@ const logAuthorization: logFunction = (
 	res
 ): responseLogObject => {
 	// !!! need to add all info + userId and path info and method and send it to logs_ms
-	let logObject = {
-		user: {
-			id: res?.locals?.userVerified?.id,
-			usersMsId: res?.locals?.userVerified?.msId,
-		},
-	};
+	// let logObject = {
+	// 	user: {
+	// 		id: res?.locals?.userVerified?.id,
+	// 		usersMsId: res?.locals?.userVerified?.msId,
+	// 	},
+	// };
 	let responseObject: responseLogObject = {
 		code: 403,
 		message: "Forbidden",

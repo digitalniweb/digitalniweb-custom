@@ -108,4 +108,15 @@ export const defaultTranslations: translations = {
 	"Items per page": {
 		cs: "Počet položek na stránku",
 	},
+	RegistrationSuccessful: {
+		en: "Registration was successful",
+		cs: "Registrace byla úspěšná",
+	},
+	RegistrationSuccessfulPersonal: {
+		en: "You have been registered successfully",
+		cs: "Vaše registrace proběhla úspěšně",
+	},
+	"Invalid date": {
+		cs: "Neplatné datum",
+	},
 };

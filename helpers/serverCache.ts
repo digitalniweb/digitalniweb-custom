@@ -1,12 +1,8 @@
-import IoRedis, {
-	RedisKey,
-	Callback,
-	RedisValue,
-	RedisCommander,
-} from "ioredis";
+import IoRedis from "ioredis";
+import type { RedisKey, Callback, RedisValue, RedisCommander } from "ioredis";
 import redisConfig from "../variables/redisConfig.js";
 import { log } from "./logger.js";
-import { commonError } from "../../digitalniweb-types/customHelpers/logger.js";
+import type { commonError } from "../../digitalniweb-types/customHelpers/logger.js";
 
 class ServerCache {
 	static #_instance: ServerCache;

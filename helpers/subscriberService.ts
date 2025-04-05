@@ -1,4 +1,5 @@
-import IoRedis, { RedisCommander } from "ioredis";
+import IoRedis from "ioredis";
+import type { RedisCommander } from "ioredis";
 import redisConfig from "../variables/redisConfig.js";
 import EventEmitter from "events";
 import { log } from "./logger.js";

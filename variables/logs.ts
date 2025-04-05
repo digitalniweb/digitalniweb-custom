@@ -1,4 +1,4 @@
-import { statuses } from "../../digitalniweb-types/customHelpers/statuses";
+import type { statuses } from "../../digitalniweb-types/customHelpers/statuses";
 
 /**
  * @key `api` For "users" API calls management when API is opened publicly/paid.

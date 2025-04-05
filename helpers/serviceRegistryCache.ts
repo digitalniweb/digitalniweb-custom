@@ -1,4 +1,4 @@
-import {
+import type {
 	microserviceRegistryInfo,
 	microserviceOptions,
 	serviceRegistry,
@@ -6,14 +6,14 @@ import {
 	newAppOptions,
 } from "../../digitalniweb-types/customFunctions/globalData.js";
 import { microservicesArray } from "../../digitalniweb-custom/variables/microservices.js";
-import {
+import type {
 	microservices,
 	microserviceInfoParametersType,
 	microserviceInfoType,
 	appInfoParametersType,
 	appInfoType,
 } from "../../digitalniweb-types/index.js";
-import {
+import type {
 	ServiceRegistry as ServiceRegistryType,
 	App as AppType,
 	ServiceRegistry,
@@ -30,12 +30,12 @@ import {
 	getServiceRegistryInfo,
 	getServiceRegistryServices,
 } from "../../custom/helpers/globalData/serviceRegistry.js";
-import { serviceRegistryServices } from "../../digitalniweb-types/custom/helpers/globalData/serviceRegistry.js";
+import type { serviceRegistryServices } from "../../digitalniweb-types/custom/helpers/globalData/serviceRegistry.js";
 
-import { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
+import type { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
 import { log } from "./logger.js";
-import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
-import { InferAttributes } from "sequelize";
+import type { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
+import type { InferAttributes } from "sequelize";
 
 type getServiceOptions = {
 	name: microservices;

@@ -1,6 +1,6 @@
 import NodeCache from "node-cache";
-import { appCacheType } from "./../../digitalniweb-types";
-import { cacheKey } from "./../../digitalniweb-types/custom/helpers/remoteProcedureCall";
+import type { appCacheType } from "./../../digitalniweb-types";
+import type { cacheKey } from "./../../digitalniweb-types/custom/helpers/remoteProcedureCall";
 
 class AppCache {
 	static #_instance: AppCache;

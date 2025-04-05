@@ -1,5 +1,5 @@
 import fs from "fs/promises";
-import { microservices } from "../../digitalniweb-types";
+import type { microservices } from "../../digitalniweb-types";
 let microservice = process.env.MICROSERVICE_NAME as microservices;
 /**
  * preloads (initiate) all Sequelize models so we don't need to import 'many-to-many' join tables when we need eager loading

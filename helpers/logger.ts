@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import Publisher from "./publisherService.js";
-import {
+import type {
 	commonError,
 	customLogObject,
 	logObject,
@@ -9,14 +9,13 @@ import {
 
 import {
 	ANSIStyle,
-	ANSIStyleKeys,
 	ANSIcolors,
 	logColors,
-	logTypes,
 	logFunctions,
 } from "../variables/logs.js";
-import HTTPMethods from "../../digitalniweb-types/httpMethods.js";
-import { statuses } from "../../digitalniweb-types/customHelpers/statuses.js";
+import type { ANSIStyleKeys, logTypes } from "../variables/logs.js";
+import type { HTTPMethods } from "../../digitalniweb-types/httpMethods.js";
+import type { statuses } from "../../digitalniweb-types/customHelpers/statuses.js";
 import { getUTCDateTime } from "../functions/dateFunctions.js";
 
 function getHttpErrorLogStatus(code: number) {

@@ -1,19 +1,19 @@
 import axios from "axios";
-import type { AxiosError } from "axios";
+// import type { AxiosError } from "axios";
 
-import { HTTPMethods } from "../../digitalniweb-types/httpMethods.js";
+import type { HTTPMethods } from "../../digitalniweb-types/httpMethods.js";
 import {
 	getAllServiceRegistryServices,
 	getApp,
 	getMicroservice,
 	microserviceExists,
 } from "./serviceRegistryCache.js";
-import {
+import type {
 	ServiceRegistry,
 	App,
 } from "../../digitalniweb-types/models/globalData.js";
 import firstNonNullRemoteCall from "../functions/firstNonNullRemoteCall.js";
-import {
+import type {
 	msCallOptions,
 	appCallOptions,
 	remoteCallResponse,
@@ -21,8 +21,8 @@ import {
 	cacheKey,
 } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import AppCache from "./appCache.js";
-import { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
-import { InferAttributes } from "sequelize";
+import type { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
+import type { InferAttributes } from "sequelize";
 
 // ! cache doesn't work!
 /**

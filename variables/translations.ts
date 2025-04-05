@@ -1,4 +1,4 @@
-import { translations } from "./../../digitalniweb-types/translations";
+import type { translations } from "./../../digitalniweb-types/translations";
 
 export const defaultTranslations: translations = {
 	Name: {

@@ -1,4 +1,4 @@
-import { remoteCallResponse } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
+import type { remoteCallResponse } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import { log } from "../helpers/logger.js";
 import type { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 

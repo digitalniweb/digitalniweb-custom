@@ -60,6 +60,9 @@ export const defaultTranslations: translations = {
 	"Fill in this field": {
 		cs: "Vyplňte prosím toto pole",
 	},
+	"Please enter valid login details": {
+		cs: "Zadejte prosim platné přihlašovací údaje",
+	},
 	okCancelCancel: {
 		en: "Cancel",
 		cs: "Zavřít",
@@ -118,5 +121,16 @@ export const defaultTranslations: translations = {
 	},
 	"Invalid date": {
 		cs: "Neplatné datum",
+	},
+	"Wait till": {
+		cs: "Počkejte do",
+	},
+	LoginErrorWrongLogin: {
+		en: "Logging in was unsuccessful",
+		cs: "Přihlášení se nezdařilo",
+	},
+	LoginErrorTooManyAttempts: {
+		en: "There were too many attempts to log in.",
+		cs: "Bylo zaznamenáno příliš mnoho pokusů o přihlášení",
 	},
 };

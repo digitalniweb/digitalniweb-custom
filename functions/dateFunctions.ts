@@ -23,6 +23,78 @@ export const getDaysInMonth = (
 	return new Date(year, month, 0).getDate();
 };
 
+type invalidDateReturn = "undefined" | "yearZero" | "yearMax";
+
+/**
+ * @returns Date. If date is invalid then return new Date("0000-01-01T00:00:00.000Z")
+ */
+export function addMinutesToDate(
+	date: Date | string,
+	minutes: number,
+	invalidDateReturns: invalidDateReturn = "undefined"
+): Date | undefined {
+	if (typeof date === "string") date = new Date(date);
+	if (!isValidDate(date)) {
+		switch (invalidDateReturns) {
+			case "undefined":
+				return undefined;
+			case "yearZero":
+				return new Date("0000-01-01T00:00:00.000Z");
+			case "yearMax":
+				return new Date(8640000000000000);
+			default:
+				return undefined;
+		}
+	}
+	return new Date(date.getTime() + minutes * 60_000);
+}
+
+/**
+ * @returns Date. If date is invalid then return new Date("0000-01-01T00:00:00.000Z")
+ */
+export function subtractMinutesFromDate(
+	date: Date,
+	minutes: number,
+	invalidDateReturns: invalidDateReturn = "undefined"
+): Date | undefined {
+	if (typeof date === "string") date = new Date(date);
+	if (!isValidDate(date)) {
+		switch (invalidDateReturns) {
+			case "undefined":
+				return undefined;
+			case "yearZero":
+				return new Date("0000-01-01T00:00:00.000Z");
+			case "yearMax":
+				return new Date(8640000000000000);
+			default:
+				return undefined;
+		}
+	}
+	return new Date(date.getTime() - minutes * 60_000);
+}
+
+/**
+ *
+ * @param date any
+ * @returns boolean - can be "Invalid date"
+ */
+export function isDate(date: any) {
+	return date && Object.prototype.toString.call(date) === "[object Date]";
+}
+
+/**
+ *
+ * @param date any
+ * @returns boolean - can't be "Invalid date"
+ */
+export function isValidDate(date: any) {
+	return (
+		date &&
+		Object.prototype.toString.call(date) === "[object Date]" &&
+		!isNaN(date)
+	);
+}
+
 /**
  *
  * @param date Date object

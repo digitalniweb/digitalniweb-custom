@@ -6,3 +6,9 @@ export const adminAuthorizationNames = [
 ] as const;
 
 export const userAuthorizationNames = ["user", "tenant"] as const;
+
+export const authRules = {
+	maxAttempts: 5,
+	minPasswordLength: 10,
+	timeSpanMinutes: 10,
+};

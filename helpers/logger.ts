@@ -231,6 +231,9 @@ const log = function (
 	if (customLogObject?.req?.body?.password)
 		customLogObject.req.body.password = "ANONYMIZED";
 	if (req?.body?.password) req.body.password = "ANONYMIZED";
+	if (customLogObject?.req?.body?.user?.password)
+		customLogObject.req.body.user.password = "ANONYMIZED";
+	if (req?.body?.user?.password) req.body.user.password = "ANONYMIZED";
 
 	let logValue = (
 		logFunctionsMap[type] as {

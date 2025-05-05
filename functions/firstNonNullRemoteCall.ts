@@ -1,6 +1,5 @@
 import type { remoteCallResponse } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
-import { log } from "../helpers/logger.js";
-import type { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
+import { consoleLogDev } from "../helpers/logger.js";
 
 /**
  * First `non null/false/empty` promise result.
@@ -47,7 +46,7 @@ export default function firstNonNullRemoteCall<T>(
 							nonNullSuccess,
 							errorCount
 						);
-						if (end.error) reject(end.data);
+						if (end.error) reject(end.message);
 						else resolve(promiseSuccess<T>(end.data));
 					}
 				});
@@ -56,33 +55,27 @@ export default function firstNonNullRemoteCall<T>(
 }
 
 function rejectedPromise(error: any) {
-	log({
-		type: "functions",
-		status: "warning",
-		message:
-			"Error happened while waiting for promises in 'firstNonNullRemoteCall'",
+	consoleLogDev(
 		error,
-	});
+		"warning",
+		"Error happened while waiting for promises in 'firstNonNullRemoteCall'"
+	);
 }
 function allPromisesEnded<T>(
 	nonNullSuccess: boolean,
 	errorHappened: number
 ):
-	| { error: true; data: customLogObject }
+	| { error: true; message: string }
 	| { error: false; data: remoteCallResponse<T> }
 	| { error: false; data: { data: null; status: number } } {
 	if (!nonNullSuccess && errorHappened) {
 		return {
 			error: true,
-			data: {
-				type: "functions",
-				status: "error",
-				message: `Nothing was found when waiting for promises in 'firstNonNullRemoteCall' but error happened in ${errorHappened} promise${
-					errorHappened > 1 ? "s" : ""
-				}! More info about ${
-					errorHappened > 1 ? "the error" : "these errors"
-				} should be logged earlier via 'rejectedPromise'.`,
-			},
+			message: `Nothing was found when waiting for promises in 'firstNonNullRemoteCall' but error happened in ${errorHappened} promise${
+				errorHappened > 1 ? "s" : ""
+			}! More info about ${
+				errorHappened > 1 ? "the error" : "these errors"
+			} should be logged earlier via 'rejectedPromise'.`,
 		};
 	}
 	return { error: false, data: { data: null, status: 200 } };

@@ -21,7 +21,6 @@ import type {
 	cacheKey,
 } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import AppCache from "./appCache.js";
-import type { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 import type { InferAttributes } from "sequelize";
 
 // ! cache doesn't work!
@@ -42,20 +41,13 @@ export async function microserviceCall<T>(
 	}: msCallOptions = options;
 
 	if (!microserviceExists(name))
-		throw {
-			type: "functions",
-			message: "Microservice is doesn't exist.",
-			status: "warning",
-		} as customLogObject;
+		throw new Error("Microservice is doesn't exist.");
 	if (!options.method) options.method = "GET";
 
 	if (name === process.env.MICROSERVICE_NAME) {
-		throw {
-			type: "consoleLog",
-			message:
-				"You don't need to call 'microserviceCall' for same microservice.",
-			status: "info",
-		} as customLogObject;
+		throw new Error(
+			"You don't need to call 'microserviceCall' for same microservice."
+		);
 	}
 
 	if (cache) {
@@ -72,14 +64,11 @@ export async function microserviceCall<T>(
 			id,
 		});
 
-		if (!service) {
-			throw {
-				type: "system",
-				message:
-					"Microservice is undefined, wasn't found in cache or in serviceRegistry.",
-				status: "warning",
-			} as customLogObject;
-		}
+		if (!service)
+			throw new Error(
+				"Microservice is undefined, wasn't found in cache or in serviceRegistry."
+			);
+
 		finalPath = createCallPath(service, options);
 
 		let response = await makeCall<T>({
@@ -128,13 +117,11 @@ export async function microserviceCall<T>(
 		}
 
 		let services = await getAllServiceRegistryServices(name);
-		if (!services) {
-			throw {
-				type: "system",
-				message: `Couldn't get registry services for '${name}' service.`,
-				status: "warning",
-			} as customLogObject;
-		}
+		if (!services)
+			throw new Error(
+				`Couldn't get registry services for '${name}' service.`
+			);
+
 		let requestsToServices: Promise<remoteCallResponse<T>>[] = [];
 		services.forEach((service) => {
 			finalPath = createCallPath(service, options);
@@ -154,12 +141,9 @@ export async function microserviceCall<T>(
 
 		return response;
 	} else
-		throw {
-			type: "consoleLog",
-			message:
-				"You don't need to call 'microserviceCall' for same microservice.",
-			status: "info",
-		} as customLogObject;
+		throw new Error(
+			"You don't need to call 'microserviceCall' for same microservice."
+		);
 }
 
 function addRegisterApiKeyAuthHeader() {
@@ -181,12 +165,7 @@ export async function appCall<T>(
 
 	let service = await getApp(name);
 
-	if (!service)
-		throw {
-			type: "functions",
-			message: "App doesn't exist.",
-			status: "warning",
-		} as customLogObject;
+	if (!service) throw new Error("App doesn't exist.");
 	let finalPath = createCallPath(service, options);
 	let headers = createCallHeaders(options);
 	return makeCall<T>({

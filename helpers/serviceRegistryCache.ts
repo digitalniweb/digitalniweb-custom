@@ -33,9 +33,8 @@ import {
 import type { serviceRegistryServices } from "../../digitalniweb-types/custom/helpers/globalData/serviceRegistry.js";
 
 import type { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
-import { log } from "./logger.js";
-import type { customLogObject } from "../../digitalniweb-types/customHelpers/logger.js";
 import type { InferAttributes } from "sequelize";
+import { consoleLogDev } from "./logger.js";
 
 type getServiceOptions = {
 	name: microservices;
@@ -98,52 +97,31 @@ export async function getApp(
 			if ((await requestServiceRegistryInfo()) === false)
 				return undefined;
 		}
-		try {
-			let { data: appData } = await microserviceCall<
-				InferAttributes<AppType>
-			>({
-				name: "globalData",
-				path: `/api/serviceregistry/app?name=${name}`,
-			});
-			let app = appData;
-			if (!app) return undefined;
-			setApp({ name, info: app });
-			return app;
-		} catch (error: any) {
-			log({
-				type: "functions",
-				status: "warning",
-				message:
-					"Couldn't get app via 'getApp' when 'serviceRegistryAppCache=undefined'.",
-				error,
-			});
-			return undefined;
-		}
+		let { data: appData } = await microserviceCall<
+			InferAttributes<AppType>
+		>({
+			name: "globalData",
+			path: `/api/serviceregistry/app?name=${name}`,
+		});
+		let app = appData;
+		if (!app) return undefined;
+		setApp({ name, info: app });
+		return app;
 	}
 
 	let app = serviceRegistryAppCache[name] as
 		| InferAttributes<AppType>
 		| undefined;
 	if (app === undefined) {
-		try {
-			let { data: appData } = await microserviceCall<
-				InferAttributes<AppType>
-			>({
-				name: "globalData",
-				path: `/api/serviceregistry/app?name=${name}`,
-			});
-			if (!appData) return undefined;
-			app = appData;
-			setApp({ name, info: app });
-		} catch (error: any) {
-			log({
-				type: "functions",
-				status: "warning",
-				message: "Couldn't get app via 'getApp'.",
-				error,
-			});
-			return undefined;
-		}
+		let { data: appData } = await microserviceCall<
+			InferAttributes<AppType>
+		>({
+			name: "globalData",
+			path: `/api/serviceregistry/app?name=${name}`,
+		});
+		if (!appData) return undefined;
+		app = appData;
+		setApp({ name, info: app });
 	}
 	return app;
 }
@@ -358,12 +336,7 @@ export async function registerCurrentApp() {
 		method: "POST",
 	});
 	let app = appData;
-	if (!app)
-		throw {
-			type: "functions",
-			status: "error",
-			error: "Couldn't register app.",
-		} as customLogObject;
+	if (!app) throw new Error("Couldn't register app.");
 
 	process.env.APP_ID = app.id;
 
@@ -438,32 +411,22 @@ export async function registerCurrentMicroservice() {
 export async function requestServiceRegistryInfo(
 	forceRequest = false
 ): Promise<boolean> {
-	try {
-		let serviceRegistryCache: serviceRegistry | undefined =
-			appCache.get("serviceRegistry");
-		if (
-			!forceRequest &&
-			serviceRegistryCache !== undefined &&
-			serviceRegistryCache.globalData !== undefined
-		)
-			return true;
-		if (serviceRegistryCache === undefined) serviceRegistryCache = {};
-		let response = await requestServiceRegistryInfoFromRedisEvent(
-			Subscriber,
-			"pmessage"
-		);
-		serviceRegistryCache.globalData = response;
-		appCache.set("serviceRegistry", serviceRegistryCache);
+	let serviceRegistryCache: serviceRegistry | undefined =
+		appCache.get("serviceRegistry");
+	if (
+		!forceRequest &&
+		serviceRegistryCache !== undefined &&
+		serviceRegistryCache.globalData !== undefined
+	)
 		return true;
-	} catch (error: any) {
-		log({
-			type: "functions",
-			status: "warning",
-			message: "Request service registry info failed.",
-			error,
-		});
-		return false;
-	}
+	if (serviceRegistryCache === undefined) serviceRegistryCache = {};
+	let response = await requestServiceRegistryInfoFromRedisEvent(
+		Subscriber,
+		"pmessage"
+	);
+	serviceRegistryCache.globalData = response;
+	appCache.set("serviceRegistry", serviceRegistryCache);
+	return true;
 }
 
 function requestServiceRegistryInfoFromRedisEvent(
@@ -480,11 +443,7 @@ function requestServiceRegistryInfoFromRedisEvent(
 			? process.env.MICROSERVICE_UNIQUE_NAME
 			: process.env.APP_UNIQUE_NAME;
 		if (uniqueName == "") {
-			throw {
-				type: "functions",
-				status: "warning",
-				message: `'uniqueName' isn't set!`,
-			} as customLogObject;
+			throw new Error(`'uniqueName' isn't set!`);
 		}
 		const listener = (
 			pattern: string,
@@ -538,12 +497,11 @@ export async function getMainServiceRegistryId(
 		appCache.set(key, "mainServiceRegistryId");
 		return id;
 	} catch (error: any) {
-		log({
-			type: "functions",
-			status: "warning",
-			message: "Get main service registry id by name failed.",
+		consoleLogDev(
 			error,
-		});
+			"warning",
+			"Get main service registry id by name failed."
+		);
 		return null;
 	}
 }

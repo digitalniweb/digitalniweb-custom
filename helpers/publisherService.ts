@@ -2,7 +2,7 @@ import IoRedis from "ioredis";
 import type { RedisCommander } from "ioredis";
 import redisConfig from "../variables/redisConfig.js";
 import EventEmitter from "events";
-import { log } from "./logger.js";
+import { consoleLogProduction } from "./logger.js";
 
 class Publisher {
 	static #_instance: Publisher;
@@ -36,24 +36,18 @@ class Publisher {
 				if (this.#errors[error.code] === this.#notifyAfterNTries) {
 					// ! there should also be some kind of notification in here about redis not working
 					// ! the notification should be in log() function for type `system` with status `error`
-					log({
-						error: {
-							message: disconnectedMessage,
-						},
-						type: "system",
-						status: "error",
-					});
+
+					consoleLogProduction(
+						`Microservice '${process.env.MICROSERVICE_NAME}' can't connect to Redis!`,
+						"error"
+					);
 				}
 			}
 		});
 		this.#publisher.on("connect", () => {
 			this.#errors = {};
 
-			log({
-				message: "Publisher service connected",
-				type: "consoleLogProduction",
-				status: "success",
-			});
+			consoleLogProduction("Publisher service connected", "success");
 		});
 	}
 

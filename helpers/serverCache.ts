@@ -1,8 +1,7 @@
 import IoRedis from "ioredis";
 import type { RedisKey, Callback, RedisValue, RedisCommander } from "ioredis";
 import redisConfig from "../variables/redisConfig.js";
-import { log } from "./logger.js";
-import type { commonError } from "../../digitalniweb-types/customHelpers/logger.js";
+import { consoleLogProduction } from "./logger.js";
 
 class ServerCache {
 	static #_instance: ServerCache;
@@ -21,11 +20,10 @@ class ServerCache {
 		this.#cache = new IoRedis(redisConfig);
 
 		this.#cache.on("connect", () => {
-			log({
-				message: `Redis connected to '${process.env.MICROSERVICE_NAME}'`,
-				type: "consoleLogProduction",
-				status: "success",
-			});
+			consoleLogProduction(
+				`Redis connected to '${process.env.MICROSERVICE_NAME}'`,
+				"success"
+			);
 		});
 
 		this.#cache.on("error", () => {
@@ -39,12 +37,11 @@ class ServerCache {
 		try {
 			await this.#cache.connect();
 		} catch (error) {
-			log({
-				error: error as commonError,
-				message: `Microservice '${process.env.MICROSERVICE_NAME}' couldn't connect to Redis!`,
-				type: "consoleLogProduction",
-				status: "error",
-			});
+			consoleLogProduction(
+				error,
+				"error",
+				`Microservice '${process.env.MICROSERVICE_NAME}' couldn't connect to Redis!`
+			);
 		}
 	}
 

@@ -8,7 +8,6 @@ import type {
 	WhereOptions,
 } from "sequelize";
 import type { Request } from "express";
-import { log } from "./logger.js";
 import { microserviceCall } from "./remoteProcedureCall.js";
 import type { msCallOptions } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall";
 import type {
@@ -29,7 +28,7 @@ import type { ParsedQs } from "qs";
  */
 export async function getGlobalDataList<
 	T extends keyof globalDataModelsListMapType,
-	P extends keyof globalDataListWhereMap | undefined = undefined,
+	P extends keyof globalDataListWhereMap | undefined = undefined
 >(
 	ModelName: T,
 	column?: P,
@@ -37,33 +36,27 @@ export async function getGlobalDataList<
 		? globalDataListWhereMap[P]
 		: undefined
 ) {
-	try {
-		let list;
-		let where;
-		if (column && array && Array.isArray(array) && array.length > 0)
-			where = { [column]: array };
-		let options = {
-			name: "globalData",
-			path: `/api/${ModelName}/list`,
-		} as msCallOptions;
-		if (where) options.params = { where };
+	let list;
+	let where;
+	if (column && array && Array.isArray(array) && array.length > 0)
+		where = { [column]: array };
+	let options = {
+		name: "globalData",
+		path: `/api/${ModelName}/list`,
+	} as msCallOptions;
+	if (where) options.params = { where };
 
-		options.cache = {
-			type: "list",
-			ms: "globalData",
-			model: ModelName,
-		};
+	options.cache = {
+		type: "list",
+		ms: "globalData",
+		model: ModelName,
+	};
 
-		let { data } =
-			await microserviceCall<
-				InferAttributes<globalDataModelsListMapType[T]>[]
-			>(options);
-		list = data;
-		return list;
-	} catch (error: any) {
-		log({ type: "functions", error, status: "error" });
-		return false;
-	}
+	let { data } = await microserviceCall<
+		InferAttributes<globalDataModelsListMapType[T]>[]
+	>(options);
+	list = data;
+	return list;
 }
 
 async function getGlobalDataModelList<T extends Model>(
@@ -123,23 +116,17 @@ export async function getRequestGlobalDataModelList<T extends Model>(
 
 export async function getGlobalDataModelArray<
 	T extends keyof globalDataModelsListMapType,
-	P extends keyof globalDataListWhereMap,
+	P extends keyof globalDataListWhereMap
 >(ModelName: T, column?: P, array?: globalDataListWhereMap[P], attribute?: P) {
-	try {
-		if (typeof attribute === "undefined") attribute = "id" as P;
+	if (typeof attribute === "undefined") attribute = "id" as P;
 
-		let options = {
-			name: "globalData",
-			path: `/api/${ModelName}/array`,
-			params: { column, array, attribute },
-		} as msCallOptions;
-		let { data } =
-			await microserviceCall<globalDataListWhereMap[P]>(options);
-		return data;
-	} catch (error: any) {
-		log({ type: "functions", error, status: "error" });
-		return false;
-	}
+	let options = {
+		name: "globalData",
+		path: `/api/${ModelName}/array`,
+		params: { column, array, attribute },
+	} as msCallOptions;
+	let { data } = await microserviceCall<globalDataListWhereMap[P]>(options);
+	return data;
 }
 
 /**

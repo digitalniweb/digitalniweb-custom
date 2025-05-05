@@ -2,7 +2,7 @@ import IoRedis from "ioredis";
 import type { RedisCommander } from "ioredis";
 import redisConfig from "../variables/redisConfig.js";
 import EventEmitter from "events";
-import { log } from "./logger.js";
+import { consoleLogProduction } from "./logger.js";
 
 class Subscriber {
 	static #_instance: Subscriber;
@@ -12,11 +12,7 @@ class Subscriber {
 	constructor() {
 		this.#subscriber = new IoRedis(redisConfig);
 		this.#subscriber.on("connect", () => {
-			log({
-				message: `Subscriber service connected`,
-				type: "consoleLogProduction",
-				status: "success",
-			});
+			consoleLogProduction("Subscriber service connected", "success");
 		});
 		this.#subscriber.on("error", () => {
 			// For now just to catch the error so it doesn't pollute terminal.

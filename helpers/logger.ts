@@ -1,35 +1,8 @@
 // import Publisher from "./publisherService.js";
 import { ANSIStyle, ANSIcolors, logColors } from "../variables/logs.js";
 import type { ANSIStyleKeys } from "../variables/logs.js";
-import type { HTTPMethods } from "../../digitalniweb-types/httpMethods.js";
 import type { statuses } from "../../digitalniweb-types/customHelpers/statuses.js";
-import type { resourceIdsType } from "../../digitalniweb-types/apps/communication/index.js";
-
-export type logErrorObject = {
-	statusCode: number; // http status code
-	message: string;
-	code?: string | number;
-};
-export type logObject = {
-	req: {
-		url: string;
-		method: HTTPMethods | string;
-		body?: Object;
-		query?: any;
-		params?: any;
-	};
-	error?: logErrorObject;
-	caller?: {
-		resourceIds?: resourceIdsType;
-		ip?: string;
-		ua?: string;
-	};
-	callee: {
-		serviceType: "app" | "microservice";
-		serviceId: number;
-	};
-	time: string | Date;
-};
+import type { logObject } from "../../digitalniweb-types/logger.js";
 
 function getHttpErrorLogStatus(code: number) {
 	let type: statuses = "success";

@@ -231,6 +231,9 @@ type remoteServiceCallInfo = {
 	cacheKey?: string;
 };
 
+// createError(error) is Nuxt function but I use this in microservices too and typescrpit doesn't like it. Fake declare it here.
+declare const createError: ((input: any) => Error) | undefined;
+
 /**
  * returns Axios response data param
  * @param options

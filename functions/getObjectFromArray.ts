@@ -6,8 +6,8 @@ export default function getObjectFromArray<T>(
 	searchedTreeArray: T[] = [],
 	treeLevel: number = -1,
 	options = {
-		key: "id" as const,
-		children: "children" as const,
+		key: "id",
+		children: "children",
 	}
 ): T | false {
 	for (let i = 0; i < searchedTreeArray.length; i++) {

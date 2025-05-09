@@ -34,7 +34,7 @@ import type { serviceRegistryServices } from "../../digitalniweb-types/custom/he
 
 import type { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
 import type { InferAttributes } from "sequelize";
-import { consoleLogDev } from "./logger.js";
+import { consoleLogProduction } from "./logger.js";
 
 type getServiceOptions = {
 	name: microservices;
@@ -497,7 +497,7 @@ export async function getMainServiceRegistryId(
 		appCache.set(key, "mainServiceRegistryId");
 		return id;
 	} catch (error: any) {
-		consoleLogDev(
+		consoleLogProduction(
 			error,
 			"warning",
 			"Get main service registry id by name failed."

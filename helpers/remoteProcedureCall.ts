@@ -28,7 +28,7 @@ import type { InferAttributes } from "sequelize";
  *
  * @param options
  * @returns `remoteCallResponse` this is practically Axios call. Returns Axios response. Might return object (which parameters need to be the same as axios')
- * @throws {AxiosError | customLogObject}
+ * @throws {AxiosError}
  */
 export async function microserviceCall<T>(
 	options: msCallOptions
@@ -248,30 +248,39 @@ async function makeCall<T>(
 		cacheKey,
 	}: remoteServiceCallInfo = options;
 
-	let axiosResponse = await axios({
-		url,
-		method,
-		data,
-		params,
-		timeout,
-		headers,
-	});
+	try {
+		let axiosResponse = await axios({
+			url,
+			method,
+			data,
+			params,
+			timeout,
+			headers,
+		});
 
-	if (method === "GET" && cacheKey && axiosResponse.status < 400) {
-		let cacheData = {
-			data: axiosResponse.data,
-			status: 304,
-		} as cachedResponseData<T>;
-		if (axiosResponse?.headers?.["x-ms-id"]) {
-			if (!cacheData.headers) cacheData.headers = {};
-			cacheData.headers["x-ms-id"] = axiosResponse?.headers?.["x-ms-id"];
-		} else if (axiosResponse?.headers?.["x-app-id"]) {
-			if (!cacheData.headers) cacheData.headers = {};
-			cacheData.headers["x-app-id"] =
-				axiosResponse?.headers?.["x-app-id"];
+		if (method === "GET" && cacheKey && axiosResponse.status < 400) {
+			let cacheData = {
+				data: axiosResponse.data,
+				status: 304,
+			} as cachedResponseData<T>;
+			if (axiosResponse?.headers?.["x-ms-id"]) {
+				if (!cacheData.headers) cacheData.headers = {};
+				cacheData.headers["x-ms-id"] =
+					axiosResponse?.headers?.["x-ms-id"];
+			} else if (axiosResponse?.headers?.["x-app-id"]) {
+				if (!cacheData.headers) cacheData.headers = {};
+				cacheData.headers["x-app-id"] =
+					axiosResponse?.headers?.["x-app-id"];
+			}
+			AppCache.set(cacheKey, cacheData);
 		}
-		AppCache.set(cacheKey, cacheData);
-	}
 
-	return axiosResponse;
+		return axiosResponse;
+	} catch (error: any) {
+		if (error?.response?.data) error.data = error.response.data;
+
+		if (createError) throw createError(error); // for nuxt 3
+
+		throw error; // for microservices
+	}
 }

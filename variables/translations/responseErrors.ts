@@ -1,4 +1,4 @@
-import type { translations } from "~/digitalniweb-types/translations";
+import type { translations } from "../../../digitalniweb-types/translations";
 
 export const responseErrorsTranslations: translations = {
 	LoginErrorWrongLogin: {

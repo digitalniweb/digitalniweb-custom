@@ -1,4 +1,5 @@
-import type { translations } from "./../../digitalniweb-types/translations";
+import type { translations } from "../../../digitalniweb-types/translations";
+import { responseErrorsTranslations } from "./responseErrors";
 
 export const defaultTranslations: translations = {
 	Name: {
@@ -125,12 +126,5 @@ export const defaultTranslations: translations = {
 	"Wait till": {
 		cs: "Počkejte do",
 	},
-	LoginErrorWrongLogin: {
-		en: "Logging in was unsuccessful",
-		cs: "Přihlášení se nezdařilo",
-	},
-	LoginErrorTooManyAttempts: {
-		en: "There were too many attempts to log in.",
-		cs: "Bylo zaznamenáno příliš mnoho pokusů o přihlášení",
-	},
+	...responseErrorsTranslations,
 };

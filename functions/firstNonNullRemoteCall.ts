@@ -60,6 +60,7 @@ function rejectedPromise(error: any) {
 		"warning",
 		"Error happened while waiting for promises in 'firstNonNullRemoteCall'"
 	);
+	throw error;
 }
 function allPromisesEnded<T>(
 	nonNullSuccess: boolean,
@@ -69,14 +70,13 @@ function allPromisesEnded<T>(
 	| { error: false; data: remoteCallResponse<T> }
 	| { error: false; data: { data: null; status: number } } {
 	if (!nonNullSuccess && errorHappened) {
-		return {
-			error: true,
-			message: `Nothing was found when waiting for promises in 'firstNonNullRemoteCall' but error happened in ${errorHappened} promise${
+		throw Error(
+			`Nothing was found when waiting for promises in 'firstNonNullRemoteCall' but error happened in ${errorHappened} promise${
 				errorHappened > 1 ? "s" : ""
 			}! More info about ${
 				errorHappened > 1 ? "the error" : "these errors"
-			} should be logged earlier via 'rejectedPromise'.`,
-		};
+			} should be logged earlier via 'rejectedPromise'.`
+		);
 	}
 	return { error: false, data: { data: null, status: 200 } };
 }

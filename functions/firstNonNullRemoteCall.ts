@@ -1,5 +1,6 @@
 import type { remoteCallResponse } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import { consoleLogDev } from "../helpers/logger.js";
+import type { errorResponse } from "~/digitalniweb-types/errors.js";
 
 /**
  * First `non null/false/empty` promise result.
@@ -17,7 +18,7 @@ export default function firstNonNullRemoteCall<T>(
 	return new Promise((resolve, reject) => {
 		let count = 0;
 		let nonNullSuccess = false; // non null/false/empty
-		let errorCount = 0;
+		let errors: errorResponse[] = [];
 		let notOkStatus = 400;
 		if (allow400http) notOkStatus = 500;
 		promises.forEach((promise) => {
@@ -36,17 +37,14 @@ export default function firstNonNullRemoteCall<T>(
 						resolve(promiseSuccess(e.response));
 						return;
 					}
-					errorCount++;
+					errors.push(e);
 					rejectedPromise(e);
 				})
 				.finally(() => {
 					count++;
 					if (count === promises.length) {
-						let end = allPromisesEnded<T>(
-							nonNullSuccess,
-							errorCount
-						);
-						if (end.error) reject(end.message);
+						let end = allPromisesEnded<T>(nonNullSuccess, errors);
+						if (end.error) reject(end);
 						else resolve(promiseSuccess<T>(end.data));
 					}
 				});
@@ -60,23 +58,41 @@ function rejectedPromise(error: any) {
 		"warning",
 		"Error happened while waiting for promises in 'firstNonNullRemoteCall'"
 	);
-	throw error;
+	if (error?.response?.data) error.data = error.response.data;
+	return error;
 }
 function allPromisesEnded<T>(
 	nonNullSuccess: boolean,
-	errorHappened: number
+	errors: errorResponse[]
 ):
-	| { error: true; message: string }
+	| { error: true; message: string; data?: Record<string, any> }
 	| { error: false; data: remoteCallResponse<T> }
 	| { error: false; data: { data: null; status: number } } {
-	if (!nonNullSuccess && errorHappened) {
-		throw Error(
-			`Nothing was found when waiting for promises in 'firstNonNullRemoteCall' but error happened in ${errorHappened} promise${
-				errorHappened > 1 ? "s" : ""
-			}! More info about ${
-				errorHappened > 1 ? "the error" : "these errors"
-			} should be logged earlier via 'rejectedPromise'.`
-		);
+	if (!nonNullSuccess && errors.length > 0) {
+		let errorToSend = {} as errorResponse;
+		for (let i = 0; i < errors.length; i++) {
+			let error = errors[i];
+
+			if (
+				error?.data ||
+				(error.statusCode !== 404 && error.statusCode !== 500)
+			) {
+				errorToSend = error;
+				break;
+			}
+		}
+
+		return {
+			error: true,
+			message:
+				errorToSend.message ??
+				`Nothing was found when waiting for promises in 'firstNonNullRemoteCall' but error happened in ${errors.length} promise${
+					errors.length > 1 ? "s" : ""
+				}! More info about ${
+					errors.length > 1 ? "the error" : "these errors"
+				} should be logged earlier via 'rejectedPromise'.`,
+			data: errorToSend?.data,
+		};
 	}
 	return { error: false, data: { data: null, status: 200 } };
 }

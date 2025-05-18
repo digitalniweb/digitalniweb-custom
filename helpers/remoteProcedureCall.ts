@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 // import type { AxiosError } from "axios";
 
 import type { HTTPMethods } from "../../digitalniweb-types/httpMethods.js";
@@ -137,9 +137,15 @@ export async function microserviceCall<T>(
 				})
 			);
 		});
-		let response = await firstNonNullRemoteCall(requestsToServices);
+		try {
+			let response = await firstNonNullRemoteCall(requestsToServices);
 
-		return response;
+			return response;
+		} catch (error: any) {
+			if (typeof createError !== "undefined")
+				throw createError(error.data);
+			throw error.data ?? error;
+		}
 	} else
 		throw new Error(
 			"You don't need to call 'microserviceCall' for same microservice."
@@ -278,7 +284,7 @@ async function makeCall<T>(
 		return axiosResponse;
 	} catch (error: any) {
 		if (error?.response?.data) error.data = error.response.data;
-
+		if (typeof createError !== "undefined") throw createError(error);
 		throw error;
 	}
 }

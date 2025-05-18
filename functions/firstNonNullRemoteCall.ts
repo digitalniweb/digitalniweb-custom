@@ -1,6 +1,6 @@
 import type { remoteCallResponse } from "../../digitalniweb-types/custom/helpers/remoteProcedureCall.js";
 import { consoleLogDev } from "../helpers/logger.js";
-import type { errorResponse } from "~/digitalniweb-types/errors.js";
+import type { errorResponse } from "../../digitalniweb-types/errors.js";
 
 /**
  * First `non null/false/empty` promise result.
@@ -86,9 +86,9 @@ function allPromisesEnded<T>(
 			error: true,
 			message:
 				errorToSend.message ??
-				`Nothing was found when waiting for promises in 'firstNonNullRemoteCall' but error happened in ${errors.length} promise${
-					errors.length > 1 ? "s" : ""
-				}! More info about ${
+				`Nothing was found when waiting for promises in 'firstNonNullRemoteCall' but error happened in ${
+					errors.length
+				} promise${errors.length > 1 ? "s" : ""}! More info about ${
 					errors.length > 1 ? "the error" : "these errors"
 				} should be logged earlier via 'rejectedPromise'.`,
 			data: errorToSend?.data,

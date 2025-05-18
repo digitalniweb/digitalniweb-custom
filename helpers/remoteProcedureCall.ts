@@ -23,6 +23,8 @@ import type {
 import AppCache from "./appCache.js";
 import type { InferAttributes } from "sequelize";
 
+declare const createError: ((input: any) => Error) | undefined;
+
 // ! cache doesn't work!
 /**
  *

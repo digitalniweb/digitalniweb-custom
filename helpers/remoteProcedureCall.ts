@@ -23,6 +23,7 @@ import type {
 import AppCache from "./appCache.js";
 import type { InferAttributes } from "sequelize";
 
+// fix for ms - this is nuxt 3 function
 declare const createError: ((input: any) => Error) | undefined;
 
 // ! cache doesn't work!
@@ -145,8 +146,8 @@ export async function microserviceCall<T>(
 			return response;
 		} catch (error: any) {
 			if (typeof createError !== "undefined")
-				throw createError(error.data);
-			throw error.data ?? error;
+				throw createError(error.data); // nuxt 3
+			throw error.data ?? error; // ms
 		}
 	} else
 		throw new Error(
@@ -286,7 +287,7 @@ async function makeCall<T>(
 		return axiosResponse;
 	} catch (error: any) {
 		if (error?.response?.data) error.data = error.response.data;
-		if (typeof createError !== "undefined") throw createError(error);
-		throw error;
+		if (typeof createError !== "undefined") throw createError(error); // nuxt 3
+		throw error; // ms
 	}
 }

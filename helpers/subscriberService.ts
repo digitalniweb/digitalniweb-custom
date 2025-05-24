@@ -3,6 +3,8 @@ import type { RedisCommander } from "ioredis";
 import redisConfig from "../variables/redisConfig.js";
 import EventEmitter from "events";
 import { consoleLogProduction } from "./logger.js";
+import { pubSubServiceInitGlobalData } from "../../server/serverInit/globalData.js";
+import { pubSubServiceInitMicroservices } from "../../server/serverInit/index.js";
 
 class Subscriber {
 	static #_instance: Subscriber;
@@ -13,6 +15,10 @@ class Subscriber {
 		this.#subscriber = new IoRedis(redisConfig);
 		this.#subscriber.on("connect", () => {
 			consoleLogProduction("Subscriber service connected", "success");
+			// resubscribe to everything
+			if (process.env?.MICROSERVICE_NAME === "globalData")
+				pubSubServiceInitGlobalData();
+			else pubSubServiceInitMicroservices();
 		});
 		this.#subscriber.on("error", () => {
 			// For now just to catch the error so it doesn't pollute terminal.

@@ -18,6 +18,9 @@ class Publisher {
 	constructor() {
 		this.#publisher = new IoRedis(redisConfig);
 		this.#publisher.on("error", (error: any) => {
+			console.log(error);
+			console.log(this.#errors);
+
 			// * more info about errors and reconnection: https://github.com/redis/ioredis#auto-reconnect
 			// * redis tries to reconnect automatically infinitely
 
@@ -34,13 +37,8 @@ class Publisher {
 			if (error.code === "ECONNREFUSED") {
 				let disconnectedMessage = `Microservice '${process.env.MICROSERVICE_NAME}' can't connect to Redis!`;
 				if (this.#errors[error.code] === this.#notifyAfterNTries) {
-					// ! there should also be some kind of notification in here about redis not working
-					// ! the notification should be in log() function for type `system` with status `error`
-
-					consoleLogProduction(
-						`Microservice '${process.env.MICROSERVICE_NAME}' can't connect to Redis!`,
-						"error"
-					);
+					// ! there should also be some kind of notification for programmers in here about redis not working
+					consoleLogProduction(disconnectedMessage, "error");
 				}
 			}
 		});

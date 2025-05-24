@@ -15,6 +15,12 @@ export const defaultTranslations: translations = {
 	Image: {
 		cs: "Obrázek",
 	},
+	Language: {
+		cs: "Jazyk",
+	},
+	Country: {
+		cs: "Stát",
+	},
 	City: {
 		cs: "Město",
 	},
@@ -125,6 +131,9 @@ export const defaultTranslations: translations = {
 	},
 	"Wait till": {
 		cs: "Počkejte do",
+	},
+	Add: {
+		cs: "Přidat",
 	},
 	...responseErrorsTranslations,
 };

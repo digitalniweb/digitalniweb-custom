@@ -19,6 +19,9 @@ import { Model } from "sequelize";
 import db from "../../server/models/index.js";
 import type { ParsedQs } from "qs";
 
+export type globalDataList<T extends keyof globalDataModelsListMapType> =
+	Promise<InferAttributes<globalDataModelsListMapType[T]>[] | null>;
+
 /**
  * This doesn't work in `globalData ms` if we wanted to get lists there! Typescript doesn't like it to mix the code together in here. Need to be done in separate file if needed.
  * @param ModelName model name of globalData
@@ -35,7 +38,7 @@ export async function getGlobalDataList<
 	array?: P extends keyof globalDataListWhereMap
 		? globalDataListWhereMap[P]
 		: undefined
-) {
+): Promise<globalDataList<T>> {
 	let list;
 	let where;
 	if (column && array && Array.isArray(array) && array.length > 0)

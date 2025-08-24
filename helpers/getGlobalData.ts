@@ -24,6 +24,7 @@ export type globalDataList<T extends keyof globalDataModelsListMapType> =
 
 /**
  * This doesn't work in `globalData ms` if we wanted to get lists there! Typescript doesn't like it to mix the code together in here. Need to be done in separate file if needed.
+ * Gets all the data from globalData and caches them first then filters them if needed
  * @param ModelName model name of globalData
  * @param column what column of model will be used to get the list
  * @param array if not undefined nor empty then use this array to find data of Model by column
@@ -31,7 +32,7 @@ export type globalDataList<T extends keyof globalDataModelsListMapType> =
  */
 export async function getGlobalDataList<
 	T extends keyof globalDataModelsListMapType,
-	P extends keyof globalDataListWhereMap | undefined = undefined
+	P extends keyof globalDataListWhereMap | undefined = undefined,
 >(
 	ModelName: T,
 	column?: P,
@@ -39,15 +40,10 @@ export async function getGlobalDataList<
 		? globalDataListWhereMap[P]
 		: undefined
 ): Promise<globalDataList<T>> {
-	let list;
-	let where;
-	if (column && array && Array.isArray(array) && array.length > 0)
-		where = { [column]: array };
 	let options = {
 		name: "globalData",
 		path: `/api/${ModelName}/list`,
 	} as msCallOptions;
-	if (where) options.params = { where };
 
 	options.cache = {
 		type: "list",
@@ -55,10 +51,20 @@ export async function getGlobalDataList<
 		model: ModelName,
 	};
 
-	let { data } = await microserviceCall<
-		InferAttributes<globalDataModelsListMapType[T]>[]
-	>(options);
-	list = data;
+	// get whole globaldata list
+	let { data } =
+		await microserviceCall<
+			InferAttributes<globalDataModelsListMapType[T]>[]
+		>(options);
+	let list = data;
+
+	// if I need to filter out just something filter it here
+	if (list && column && Array.isArray(array)) {
+		list = list.filter((row) =>
+			// @ts-ignore
+			array.includes(row[column])
+		);
+	}
 	return list;
 }
 
@@ -119,7 +125,7 @@ export async function getRequestGlobalDataModelList<T extends Model>(
 
 export async function getGlobalDataModelArray<
 	T extends keyof globalDataModelsListMapType,
-	P extends keyof globalDataListWhereMap
+	P extends keyof globalDataListWhereMap,
 >(ModelName: T, column?: P, array?: globalDataListWhereMap[P], attribute?: P) {
 	if (typeof attribute === "undefined") attribute = "id" as P;
 

@@ -3,6 +3,7 @@ import { ANSIStyle, ANSIcolors, logColors } from "../variables/logs.js";
 import type { ANSIStyleKeys } from "../variables/logs.js";
 import type { statuses } from "../../digitalniweb-types/customHelpers/statuses.js";
 import type { logObject } from "../../digitalniweb-types/logger.js";
+import isObjectEmpty from "../functions/isObjectEmpty.js";
 
 function getHttpErrorLogStatus(code: number) {
 	let type: statuses = "success";
@@ -185,6 +186,18 @@ const coloredLog = function (
 		console.log(style, "Custom logout:");
 	}
 
+	if (message instanceof Error) {
+		// otherwise the message would be {} - Errors can't be stringified
+		let errorMessage = {} as {
+			message?: string;
+			name?: string;
+			stack?: string;
+		};
+		if (message.name) errorMessage.name = message.name;
+		if (message.message) errorMessage.message = message.message;
+		if (message.stack) errorMessage.stack = message.stack;
+		if (!isObjectEmpty(errorMessage)) message = errorMessage;
+	}
 	try {
 		console.log(
 			style,

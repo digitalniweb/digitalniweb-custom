@@ -299,7 +299,7 @@ export async function registerCurrentApp() {
 			if (e === "PORT") {
 				if (Number.isInteger(Number(serviceInfo[e])))
 					throw new Error("Current's app PORT is not a number!");
-				serviceInfo[e] = process.env[e];
+				serviceInfo[e] = Number(process.env[e]);
 			} else if (e === "DEFAULT_LANGUAGE") {
 				serviceInfo[e] = process.env[e];
 			} else {
@@ -338,7 +338,7 @@ export async function registerCurrentApp() {
 	let app = appData;
 	if (!app) throw new Error("Couldn't register app.");
 
-	process.env.APP_ID = app.id;
+	process.env.APP_ID = app.id.toString();
 
 	return app;
 }
@@ -364,7 +364,7 @@ export async function registerCurrentMicroservice() {
 					throw new Error(
 						"Current's microservice PORT is not a number!"
 					);
-				serviceInfo[e] = process.env[e];
+				serviceInfo[e] = Number(process.env[e]);
 			} else if (e === "MICROSERVICE_NAME") {
 				serviceInfo[e] = process.env[e];
 			} else {
@@ -401,7 +401,8 @@ export async function registerCurrentMicroservice() {
 		method: "POST",
 	});
 	let currentService = currentServiceData;
-	if (currentService) process.env.MICROSERVICE_ID = currentService.id;
+	if (currentService)
+		process.env.MICROSERVICE_ID = currentService.id.toString();
 }
 
 /**

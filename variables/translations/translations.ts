@@ -1,4 +1,5 @@
 import type { translations } from "../../../digitalniweb-types/translations";
+import { cssTranslations } from "./css";
 import { responseErrorsTranslations } from "./responseErrors";
 
 export const defaultTranslations: translations = {
@@ -135,5 +136,21 @@ export const defaultTranslations: translations = {
 	Add: {
 		cs: "Přidat",
 	},
+	Preview: {
+		cs: "Ukázka",
+	},
+	show: { cs: "zobrazit" },
+	"Show as": { cs: "Zobrazit jako" },
+	appearance: {
+		cs: "vzhled",
+	},
+	page: {
+		cs: "strana",
+	},
+	page2: {
+		en: "page",
+		cs: "stránka",
+	},
 	...responseErrorsTranslations,
+	...cssTranslations,
 };

@@ -10,9 +10,16 @@ export const widgetsModelsArticle: widgetModelsType[keyof widgetModelsType][] =
 	["WidgetText", "WidgetBanner"] as const;
 
 export const widgetTextOptionsDefault: widgetTextOptions = {
-	padding: 0,
-	overlay: false,
-	paddingUnits: "px",
 	showHeading: true,
-	textAlign: "left",
+	container: {
+		class: "",
+		width: "container-fluid",
+		padding: "none",
+		textAlign: "left",
+		background: {
+			color: "",
+			image: "",
+			overlay: [],
+		},
+	},
 };

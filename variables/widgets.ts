@@ -14,7 +14,10 @@ export const widgetTextOptionsDefault: widgetTextOptions = {
 	container: {
 		class: "",
 		width: "container-fluid",
+		height100: false,
 		padding: "none",
+		margin: "none",
+		elevation: "none",
 		textAlign: "left",
 		background: {
 			color: "",

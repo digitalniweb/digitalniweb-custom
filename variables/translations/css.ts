@@ -7,6 +7,12 @@ export const cssTranslations: translations = {
 	Margin: {
 		cs: "Vnější okraj",
 	},
+	Shadow: {
+		cs: "Stín",
+	},
+	"Text shadow": {
+		cs: "Stín textu",
+	},
 	Background: {
 		cs: "Pozadí",
 	},
@@ -45,5 +51,11 @@ export const cssTranslations: translations = {
 	},
 	Effects: {
 		cs: "Efekty",
+	},
+	height: {
+		cs: "výška",
+	},
+	"Height 100 %": {
+		cs: "Výška 100 %",
 	},
 };

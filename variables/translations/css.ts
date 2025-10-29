@@ -58,4 +58,10 @@ export const cssTranslations: translations = {
 	"Height 100 %": {
 		cs: "Výška 100 %",
 	},
+	Border: {
+		cs: "Okraje",
+	},
+	"Border radius": {
+		cs: "Zaoblení okrajů",
+	},
 };

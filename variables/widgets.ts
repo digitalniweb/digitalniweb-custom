@@ -10,13 +10,22 @@ export const widgetsModelsArticle: widgetModelsType[keyof widgetModelsType][] =
 	["WidgetText", "WidgetBanner"] as const;
 
 export const widgetTextOptionsDefault: widgetTextOptions = {
-	showHeading: true,
+	heading: {
+		show: true,
+		type: "h2",
+		class: "none",
+		weight: "regular",
+		italic: false,
+		uppercase: false,
+	},
 	container: {
 		class: "",
 		width: "container-fluid",
 		height100: false,
 		padding: "none",
 		margin: "none",
+		border: "none",
+		borderRadius: "none",
 		elevation: "none",
 		textAlign: "left",
 		background: {

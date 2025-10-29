@@ -2,6 +2,8 @@ export const textAlign = ["left", "center", "right", "justify"] as const;
 export const lengthUnits = ["px", "%", "em", "rem", "vw", "vh"] as const;
 export const lengthUnitsGrid = ["fr"] as const;
 
+export const headingTypes = ["h1", "h2", "h3", "h4", "h5", "h6", "p"] as const;
+
 export const sizeOptions = [
 	"none",
 	"x-small",

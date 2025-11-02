@@ -13,7 +13,7 @@ export const widgetTextOptionsDefault: widgetTextOptions = {
 	heading: {
 		show: true,
 		type: "h2",
-		class: "none",
+		class: "",
 		weight: "regular",
 		italic: false,
 		uppercase: false,

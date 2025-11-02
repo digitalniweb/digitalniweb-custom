@@ -3,6 +3,30 @@ export const lengthUnits = ["px", "%", "em", "rem", "vw", "vh"] as const;
 export const lengthUnitsGrid = ["fr"] as const;
 
 export const headingTypes = ["h1", "h2", "h3", "h4", "h5", "h6", "p"] as const;
+export const textClasses = [
+	"",
+	"text-h1",
+	"text-h2",
+	"text-h3",
+	"text-h4",
+	"text-h5",
+	"text-h6",
+	"text-subtitle-1",
+	"text-subtitle-2",
+	"text-body-1",
+	"text-body-2",
+	"text-button",
+	"text-caption",
+	"text-overline",
+] as const;
+export const textWeight = [
+	"thin",
+	"light",
+	"regular",
+	"medium",
+	"bold",
+	"black",
+] as const;
 
 export const sizeOptions = [
 	"none",

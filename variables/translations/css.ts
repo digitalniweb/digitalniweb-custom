@@ -49,6 +49,9 @@ export const cssTranslations: translations = {
 	"Custom CSS class": {
 		cs: "Vlastní CSS třída",
 	},
+	"Add CSS class": {
+		cs: "Přidat CSS třídu",
+	},
 	Effects: {
 		cs: "Efekty",
 	},
@@ -64,4 +67,6 @@ export const cssTranslations: translations = {
 	"Border radius": {
 		cs: "Zaoblení okrajů",
 	},
+	italic: { cs: "kurzíva" },
+	Weight: { cs: "Tloušťka" },
 };

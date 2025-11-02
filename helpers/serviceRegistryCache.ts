@@ -1,39 +1,39 @@
-import type {
-	microserviceRegistryInfo,
-	microserviceOptions,
-	serviceRegistry,
-	serviceRegistryApp,
-	newAppOptions,
-} from "../../digitalniweb-types/customFunctions/globalData.js";
 import { microservicesArray } from "../../digitalniweb-custom/variables/microservices.js";
 import type {
-	microservices,
-	microserviceInfoParametersType,
-	microserviceInfoType,
+	microserviceOptions,
+	microserviceRegistryInfo,
+	newAppOptions,
+	serviceRegistry,
+	serviceRegistryApp,
+} from "../../digitalniweb-types/customFunctions/globalData.js";
+import type {
 	appInfoParametersType,
 	appInfoType,
+	microserviceInfoParametersType,
+	microserviceInfoType,
+	microservices,
 } from "../../digitalniweb-types/index.js";
 import type {
-	ServiceRegistry as ServiceRegistryType,
+	App,
 	App as AppType,
 	ServiceRegistry,
-	App,
+	ServiceRegistry as ServiceRegistryType,
 } from "../../digitalniweb-types/models/globalData.js";
 import appCache from "./appCache.js";
 import { microserviceCall } from "./remoteProcedureCall.js";
 
-import Publisher from "./../../digitalniweb-custom/helpers/publisherService.js";
-import Subscriber from "./../../digitalniweb-custom/helpers/subscriberService.js";
-import sleep from "../functions/sleep.js";
 import {
 	getMainServiceRegistry,
 	getServiceRegistryInfo,
 	getServiceRegistryServices,
 } from "../../custom/helpers/globalData/serviceRegistry.js";
 import type { serviceRegistryServices } from "../../digitalniweb-types/custom/helpers/globalData/serviceRegistry.js";
+import sleep from "../functions/sleep.js";
+import Publisher from "./../../digitalniweb-custom/helpers/publisherService.js";
+import Subscriber from "./../../digitalniweb-custom/helpers/subscriberService.js";
 
-import type { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
 import type { InferAttributes } from "sequelize";
+import type { Microservice as MicroserviceType } from "../../digitalniweb-types/models/globalData.js";
 import { consoleLogProduction } from "./logger.js";
 
 type getServiceOptions = {
@@ -421,13 +421,17 @@ export async function requestServiceRegistryInfo(
 	)
 		return true;
 	if (serviceRegistryCache === undefined) serviceRegistryCache = {};
-	let response = await requestServiceRegistryInfoFromRedisEvent(
-		Subscriber,
-		"pmessage"
-	);
-	serviceRegistryCache.globalData = response;
-	appCache.set("serviceRegistry", serviceRegistryCache);
-	return true;
+	try {
+		let response = await requestServiceRegistryInfoFromRedisEvent(
+			Subscriber,
+			"pmessage"
+		);
+		serviceRegistryCache.globalData = response;
+		appCache.set("serviceRegistry", serviceRegistryCache);
+		return true;
+	} catch (error) {
+		return false;
+	}
 }
 
 function requestServiceRegistryInfoFromRedisEvent(

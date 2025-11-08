@@ -151,6 +151,9 @@ export const defaultTranslations: translations = {
 		en: "page",
 		cs: "stránka",
 	},
+	Size: {
+		cs: "Velikost",
+	},
 	...responseErrorsTranslations,
 	...cssTranslations,
 };

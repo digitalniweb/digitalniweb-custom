@@ -2,10 +2,10 @@ import type { translations } from "../../../digitalniweb-types/translations";
 
 export const cssTranslations: translations = {
 	Padding: {
-		cs: "Vnitřní okraj",
+		cs: "Vnitřní mezera",
 	},
 	Margin: {
-		cs: "Vnější okraj",
+		cs: "Vnější mezera",
 	},
 	Shadow: {
 		cs: "Stín",
@@ -61,12 +61,16 @@ export const cssTranslations: translations = {
 	"Height 100 %": {
 		cs: "Výška 100 %",
 	},
-	Border: {
+	Borders: {
 		cs: "Okraje",
+	},
+	Border: {
+		cs: "Okraj",
 	},
 	"Border radius": {
 		cs: "Zaoblení okrajů",
 	},
 	italic: { cs: "kurzíva" },
 	Weight: { cs: "Tloušťka" },
+	Spacing: { cs: "Mezery" },
 };

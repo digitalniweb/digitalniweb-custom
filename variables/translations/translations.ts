@@ -59,6 +59,14 @@ export const defaultTranslations: translations = {
 		en: "Do you really want to delete this?",
 		cs: "Opravdu smazat?",
 	},
+	ChangeAfterSaveNote: {
+		en: "This action will be applied after saving",
+		cs: "Tato akce se provede až po uložení",
+	},
+	ChangeImmediateNote: {
+		en: "This action will be applied immediately",
+		cs: "Tato akce se provede okamžitě",
+	},
 	"Choose Widget": {
 		cs: "Vyberte Widget",
 	},

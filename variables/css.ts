@@ -24,6 +24,7 @@ export const textWeight = [
 	"light",
 	"regular",
 	"medium",
+	"semi-bold",
 	"bold",
 	"black",
 ] as const;
